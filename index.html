@@ -182,6 +182,23 @@
   .field-label{font-size:13px;font-weight:500;color:var(--c-sub2);margin-bottom:2px;}
   .field-value{font-size:14px;color:var(--c-text);word-break:break-word;}
 
+  /* 区域进度总览 */
+  .region-view{display:flex;flex-direction:column;gap:14px;}
+  .region-card{border:1px solid var(--c-divider);border-radius:12px;padding:16px 18px;background:#fff;}
+  .region-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;}
+  .region-name{font-size:16px;font-weight:700;letter-spacing:.5px;}
+  .region-sum{font-size:13px;color:var(--c-sub2);white-space:nowrap;}
+  .region-line{margin-top:12px;}
+  .region-line:first-of-type{margin-top:2px;}
+  .region-line-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px;}
+  .line-name{font-size:14px;font-weight:700;}
+  .line-count{font-size:13px;color:var(--c-sub2);white-space:nowrap;}
+  .line-count b{color:var(--c-text);font-weight:600;}
+  .prog-track{position:relative;width:100%;height:14px;border-radius:999px;background:#E53935;overflow:hidden;}
+  .prog-track.empty{background:var(--c-divider);}
+  .prog-fill{position:absolute;left:0;top:0;height:100%;background:#43A047;border-radius:999px 0 0 999px;}
+  .prog-fill.zero{border-radius:999px;}
+
   @media(max-width:640px){
     .grid{grid-template-columns:repeat(2,1fr);}
     .weekday-row{display:none;}
@@ -189,6 +206,43 @@
     .modal{max-height:85vh;padding:16px;}
     .detail-grid{grid-template-columns:1fr;}
     .page{padding:20px 14px 104px;}
+  }
+
+  /* 筛选栏 */
+  .filter-bar{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 18px;align-items:center;}
+  .filter{position:relative;}
+  .filter-btn{
+    display:inline-flex;align-items:center;gap:4px;
+    background:#fff;border:1px solid var(--c-divider);border-radius:8px;
+    padding:8px 14px;font-family:inherit;font-size:14px;font-weight:500;color:var(--c-primary);
+    cursor:pointer;
+  }
+  .filter-btn:hover{border-color:var(--c-primary);}
+  .filter-btn.active{background:var(--c-sub);border-color:var(--c-primary);}
+  .filter-count{color:var(--c-sub2);font-weight:400;}
+  .filter-btn.active .filter-count{color:var(--c-primary);}
+  .filter-panel{
+    position:absolute;top:calc(100% + 6px);left:0;z-index:60;
+    background:#fff;border:1px solid var(--c-divider);border-radius:10px;
+    box-shadow:0 8px 24px rgba(15,23,42,.12);
+    padding:10px;min-width:160px;max-height:300px;overflow:auto;
+  }
+  .filter-panel[hidden]{display:none;}
+  .filter-actions{display:flex;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--c-divider);}
+  .filter-link{background:none;border:none;font-family:inherit;font-size:13px;color:var(--c-primary);cursor:pointer;padding:2px 4px;}
+  .filter-link:hover{text-decoration:underline;}
+  .filter-options{display:flex;flex-direction:column;gap:2px;}
+  .filter-opt{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--c-text);padding:4px 6px;border-radius:6px;cursor:pointer;}
+  .filter-opt:hover{background:var(--c-sub);}
+  .filter-opt input{width:16px;height:16px;accent-color:var(--c-primary);cursor:pointer;}
+  .filter-reset{
+    background:none;border:1px dashed var(--c-divider);border-radius:8px;
+    padding:8px 14px;font-family:inherit;font-size:13px;color:var(--c-sub2);cursor:pointer;
+  }
+  .filter-reset:hover{border-color:var(--c-primary);color:var(--c-primary);}
+  @media(max-width:640px){
+    .filter-bar{gap:8px;}
+    .filter-panel{min-width:140px;max-width:80vw;}
   }
 </style>
 </head>
@@ -198,6 +252,8 @@
       <h1>中央配套 / 中央市场 · 2026年9月项目日历</h1>
       <p class="subtitle" id="subtitle"></p>
     </header>
+
+    <div class="filter-bar" id="filterBar"></div>
 
     <main>
       <div class="weekday-row" aria-hidden="true">
@@ -209,6 +265,7 @@
   </div>
 
   <footer class="bottom-bar">
+    <button class="chip" id="chip-region" type="button">区域进度</button>
     <button class="chip" id="chip-pending" type="button">待定 <span class="dot" id="dot-pending">0</span></button>
     <button class="chip" id="chip-mismatch" type="button">月份不一致 <span class="dot" id="dot-mismatch">0</span></button>
   </footer>
@@ -228,7 +285,7 @@
 
 <script>
 /* ===== 内联数据（源文件 calendar_data.json，整对象内联，无运行时 fetch） ===== */
-const DATA = {"calendar":{"6":[{"line":"晚肺","region":"西北","zhanyi":"53学苑-MDT","name":"53学苑系列项目-靶向治疗MDT规范诊疗会议","time":"2026年9月6日","place":"长治","form":"线下","filler":"张娇","type":"中央配套"},{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月6日","place":"长春","form":"线上","filler":"马翠霞","type":"中央配套"},{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月6日","place":"线上","form":"线上","filler":"刘西凤","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月6日","place":"上海","form":"线下","filler":"杨紊斌","type":"中央配套"},{"line":"晚肺","region":"北区","zhanyi":"区域自办","name":"2026胸部肿瘤进展建交流会","time":"2026年9月6日","place":"济南","form":"线下","filler":"张娟","type":"中央配套"},{"line":"晚肺","region":"湘桂","zhanyi":"区域自办","name":"医路相伴-多学科协同诊疗学术交流项目-2026年肺癌精准诊疗交流会","time":"2026年9月6日","place":"线上","form":"线上","filler":"潘越","type":"中央配套"}],"12":[{"line":"早肺","region":"西北","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月12日","place":"银川","form":"线下","filler":"姚怡","type":"中央配套"},{"line":"晚肺","region":"华北","zhanyi":"53学苑-MDT","name":"53学苑系列项目-靶向治疗MDT规范诊疗会议","time":"2026年9月12日","place":"许昌","form":"线下","filler":"周萌萌","type":"中央配套"},{"line":"晚肺","region":"北区","zhanyi":"区域自办","name":"53学苑-辽甘健康行","time":"2026年9月12日","place":"兰州","form":"线下","filler":"贾凌慧","type":"中央配套"},{"line":"早肺","region":"东一","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月12日","place":"苏州","form":"线下","filler":"郑昭","type":"中央配套"},{"line":"早肺","region":"东一","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月12日","place":"常州","form":"线下","filler":"郑昭","type":"中央配套"},{"line":"早肺","region":"西部","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月12日","place":"昆明","form":"线下","filler":"王云","type":"中央配套"},{"line":"早肺","region":"西部","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月12日","place":"","form":"线上","filler":"王云","type":"中央配套"},{"line":"早肺","region":"西部","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月12日","place":"成都","form":"线下","filler":"胡东杰","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月12日","place":"福州","form":"线下","filler":"杨紊斌","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月12日","place":"杭州","form":"线下","filler":"邱悦","type":"中央配套"},{"line":"早肺","region":"西部","zhanyi":"美乐肺辅-区域赛","name":"围术期诊疗学术会议","time":"2026年9月12日","place":"成都","form":"线下","filler":"青杨","type":"中央配套"},{"line":"晚肺","region":"南区","zhanyi":"区域自办","name":"第五届莞邑肿瘤学论坛","time":"2026年9月12日","place":"东莞","form":"线下","filler":"陈楷佳","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"区域自办","name":"江淮论道手术病例视频分享","time":"9月12日","place":"合肥","form":"线下","filler":"武梦云","type":"中央配套"},{"line":"晚肺","region":"东南","zhanyi":"区域自办","name":"泉州市疑难病例联盟研讨会--晋江站","time":"9月12日","place":"泉州","form":"线下","filler":"沈圳煌","type":"中央配套"}],"2":[{"line":"早肺","region":"西北","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月2日","place":"线上","form":"线上","filler":"姚怡","type":"中央配套"},{"line":"早肺","region":"湘桂","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月2日","place":"线上","form":"线上","filler":"潘越","type":"中央配套"},{"line":"晚肺","region":"西北","zhanyi":"区域自办","name":"笃行肺研-肺癌精准医学云端学术会","time":"2026年9月2日","place":"线上","form":"线上","filler":"荆琪","type":"中央配套"},{"line":"早肺","region":"南区","zhanyi":"区域自办","name":"大湾区肺癌靶向治疗精准交流会","time":"2026年9月2日","place":"线上","form":"线上","filler":"陈楷佳","type":"中央配套"},{"line":"晚肺","region":"湘桂","zhanyi":"区域自办","name":"肺癌规范化诊疗交流会一期","time":"2026年9月2日","place":"线上","form":"线上","filler":"石文质","type":"中央配套"}],"17":[{"line":"早肺","region":"西北","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月17日","place":"线上","form":"线上","filler":"张娇","type":"中央配套"},{"line":"早肺","region":"西北","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月17日","place":"线上","form":"线上","filler":"张娇","type":"中央配套"},{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月17日","place":"线上","form":"线上","filler":"刘西凤","type":"中央配套"},{"line":"早肺","region":"东一","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月17日","place":"武汉","form":"线上","filler":"徐伟","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月17日","place":"线上","form":"线上","filler":"武梦云","type":"中央配套"}],"16":[{"line":"晚肺","region":"西北","zhanyi":"区域自办","name":"中国医学会呼吸病学年会-HCP参会资助","time":"2026年9月16日","place":"广州","form":"线下","filler":"荆琪","type":"中央配套"},{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月16日","place":"哈尔滨","form":"线上","filler":"马翠霞","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月16日","place":"线上","form":"线上","filler":"江正萍","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月16日","place":"线上","form":"线上","filler":"郭田","type":"中央配套"},{"line":"早肺","region":"南区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月16日","place":"线上","form":"线上","filler":"杨小梅","type":"中央配套"},{"line":"早肺","region":"南区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月16日","place":"线上","form":"线上","filler":"陈楷佳","type":"中央配套"},{"line":"早肺","region":"南区","zhanyi":"区域自办","name":"大湾区肺癌靶向治疗精准交流会","time":"2026年9月16日","place":"线上","form":"线上","filler":"陈楷佳","type":"中央配套"},{"line":"晚肺","region":"中央","zhanyi":"NOL体系化合作","name":"CSCO 2026年度会议","time":"2026/9/16-20","place":"济南","form":"线上+线下","filler":"徐超","type":"中央市场"},{"line":"早肺","region":"中央","zhanyi":"媒体矩阵","name":"早案鉴","time":"2026/9/16","place":"线上","form":"线上","filler":"关若然","type":"中央市场"}],"8":[{"line":"晚肺","region":"西北","zhanyi":"区域自办","name":"肺悦极限-靶化诊疗新视界","time":"2026年9月8日","place":"晋中","form":"线下","filler":"荆琪","type":"中央配套"},{"line":"早肺","region":"北区","zhanyi":"区域自办","name":"医路同行-围术期全程诊疗学术交流会","time":"2026年9月8日","place":"沈阳","form":"线下","filler":"贾凌慧","type":"中央配套"},{"line":"晚肺","region":"北区","zhanyi":"区域自办","name":"53学苑-Trace Path","time":"2026年9月8日","place":"线上","form":"线上","filler":"贾凌慧","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月8日","place":"线上","form":"线上","filler":"沈圳煌","type":"中央配套"},{"line":"晚肺","region":"东南","zhanyi":"区域自办","name":"气管镜介入研修班","time":"9月8日-9月10日","place":"蚌埠","form":"线下","filler":"武梦云","type":"中央配套"}],"18":[{"line":"早肺","region":"西北","zhanyi":"区域自办","name":"2026年山西省老年学和老年健康学会肺转移瘤专业委员会学术年会暨第二届肺转账瘤“并州论道”分会场","time":"2026年9月18日","place":"太原","form":"线下","filler":"荆琪","type":"中央配套"},{"line":"晚肺","region":"南区","zhanyi":"53学苑-MDT","name":"53学苑系列项目-靶向治疗MDT规范诊疗会议","time":"2026年9月18日","place":"广州","form":"线下","filler":"凌剑辉","type":"中央配套"},{"line":"晚肺","region":"湘桂","zhanyi":"区域自办","name":"53学苑-湖南肺癌规范化诊疗交流会","time":"2026年9月18日","place":"线上","form":"线上","filler":"石文质","type":"中央配套"}],"5":[{"line":"早肺","region":"华北","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月5日","place":"安阳","form":"线下","filler":"周萌萌","type":"中央配套"},{"line":"早肺","region":"华北","zhanyi":"区域自办","name":"破局而生-肿瘤免疫治疗与靶向药物创新交流会","time":"2026年9月5日","place":"郑州","form":"线下","filler":"周萌萌","type":"中央配套"},{"line":"晚肺","region":"东一","zhanyi":"区域自办","name":"CROC-南通站","time":"2026年9月5日","place":"南通","form":"线下","filler":"高征征","type":"中央配套"},{"line":"早肺","region":"东一","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月5日","place":"苏州","form":"线下","filler":"郑昭","type":"中央配套"},{"line":"早肺","region":"西部","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月5日","place":"昆明","form":"线下","filler":"王云","type":"中央配套"},{"line":"晚肺","region":"东南","zhanyi":"53学苑-MDT","name":"53学苑系列项目-靶向治疗MDT规范诊疗会议","time":"2026年9月5日","place":"温州","form":"线下","filler":"杨紊斌","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月5日","place":"合肥","form":"线下","filler":"余黎明","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月5日","place":"蚌埠","form":"线下","filler":"武梦云","type":"中央配套"},{"line":"早肺","region":"南区","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月5日","place":"吉安","form":"线下","filler":"杨小梅","type":"中央配套"},{"line":"早肺","region":"西部","zhanyi":"区域自办","name":"车国卫教授胸外科年会分会场","time":"2026年9月5日","place":"成都","form":"线下","filler":"王强","type":"中央配套"},{"line":"早肺","region":"北区","zhanyi":"区域自办","name":"田辉年会","time":"2026年9月5日","place":"济南","form":"线下","filler":"张娟","type":"中央配套"},{"line":"晚肺","region":"湘桂","zhanyi":"区域自办","name":"华湘胸部肿瘤精准诊疗论坛","time":"2026年9月5日","place":"线上","form":"线上","filler":"刘红锋","type":"中央配套"},{"line":"晚肺","region":"东南","zhanyi":"区域自办","name":"肺癌多学科诊疗系列会","time":"9月5日","place":"温州","form":"线下","filler":"邱悦","type":"中央配套"},{"line":"早肺","region":"中央","zhanyi":"美乐肺腑-围手术期全程管理项目","name":"美乐肺腑-阿美替尼手术视频宣传（线上）","time":"2026/9/5","place":"线上","form":"线上","filler":"何若璇","type":"中央市场"}],"13":[{"line":"早肺","region":"北区","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月13日","place":"大庆","form":"线下","filler":"马翠霞","type":"中央配套"},{"line":"早肺","region":"北区","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月13日","place":"长春","form":"线下","filler":"马翠霞","type":"中央配套"},{"line":"晚肺","region":"北区","zhanyi":"53学苑-MDT","name":"53学苑系列项目-靶向治疗MDT规范诊疗会议","time":"2026年9月13日","place":"青岛","form":"线下","filler":"刘西凤","type":"中央配套"},{"line":"早肺","region":"东一","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月13日","place":"徐州","form":"线下","filler":"郑昭","type":"中央配套"},{"line":"早肺","region":"东一","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月13日","place":"重庆","form":"线下","filler":"姚代学","type":"中央配套"},{"line":"早肺","region":"西部","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月13日","place":"成都","form":"线上","filler":"胡东杰","type":"中央配套"},{"line":"早肺","region":"南区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月13日","place":"线上","form":"线上","filler":"凌剑辉","type":"中央配套"},{"line":"晚肺","region":"东南","zhanyi":"区域自办","name":"肺癌多学科（MDT）诊疗能力提升学术交流会","time":"9月13日","place":"合肥","form":"线下","filler":"武梦云","type":"中央配套"}],"9":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月9日","place":"哈尔滨","form":"线上","filler":"马翠霞","type":"中央配套"},{"line":"早肺","region":"南区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月9日","place":"线上","form":"线上","filler":"杨小梅","type":"中央配套"},{"line":"早肺","region":"南区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月9日","place":"线上","form":"线上","filler":"陈楷佳","type":"中央配套"},{"line":"早肺","region":"西部","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月9日","place":"线上","form":"线上","filler":"青杨","type":"中央配套"},{"line":"晚肺","region":"南区","zhanyi":"区域自办","name":"大湾区肺癌靶向治疗精准交流会","time":"2026年9月9日","place":"线上","form":"线上","filler":"陈楷佳","type":"中央配套"}],"23":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月23日","place":"沈阳","form":"线上","filler":"贾凌慧","type":"中央配套"},{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月23日","place":"线上","form":"线上","filler":"石瑛","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月23日","place":"线上","form":"线上","filler":"邱悦","type":"中央配套"},{"line":"早肺","region":"南区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月23日","place":"线上","form":"线上","filler":"凌剑辉","type":"中央配套"},{"line":"晚肺","region":"南区","zhanyi":"区域自办","name":"大湾区肺癌靶向治疗精准交流会","time":"2026年9月23日","place":"线上","form":"线上","filler":"陈楷佳","type":"中央配套"},{"line":"晚肺","region":"东南","zhanyi":"区域自办","name":"第七期肺癌精准诊疗与全程管理系列前沿研讨会","time":"9月23日","place":"腾讯会议","form":"线上","filler":"余黎明","type":"中央配套"}],"24":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月24日","place":"沈阳","form":"线上","filler":"贾凌慧","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月24日","place":"线上","form":"线上","filler":"邱悦","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月24日","place":"线上","form":"线上","filler":"武梦云","type":"中央配套"}],"14":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月14日","place":"沈阳","form":"线上","filler":"贾凌慧","type":"中央配套"},{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月14日","place":"线上","form":"线上","filler":"张娟","type":"中央配套"},{"line":"晚肺","region":"湘桂","zhanyi":"区域自办","name":"53学苑-湖南肺癌规范化诊疗交流会","time":"2026年9月14日","place":"线上","form":"线上","filler":"石文质","type":"中央配套"},{"line":"早肺","region":"中央","zhanyi":"媒体矩阵","name":"早察会(2026CACA全域科普行动）","time":"2026/9/14","place":"线上","form":"线上","filler":"关若然","type":"中央市场"}],"15":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月15日","place":"大连","form":"线上","filler":"贾凌慧","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月15日","place":"线上","form":"线上","filler":"沈圳煌","type":"中央配套"},{"line":"早肺","region":"湘桂","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月15日","place":"线上","form":"线上","filler":"潘越","type":"中央配套"},{"line":"早肺","region":"湘桂","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月15日","place":"线上","form":"线上","filler":"黄雪意","type":"中央配套"}],"3":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月3日","place":"线上","form":"线上","filler":"刘西凤","type":"中央配套"},{"line":"早肺","region":"东一","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月3日","place":"武汉","form":"线上","filler":"徐伟","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月3日","place":"线上","form":"线上","filler":"邱悦","type":"中央配套"},{"line":"晚肺","region":"湘桂","zhanyi":"区域自办","name":"华湘胸部肿瘤精准诊疗论坛","time":"2026年9月3日","place":"线上","form":"线上","filler":"刘红锋","type":"中央配套"}],"7":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月7日","place":"线上","form":"线上","filler":"张娟","type":"中央配套"},{"line":"晚肺","region":"湘桂","zhanyi":"区域自办","name":"华湘胸部肿瘤精准诊疗论坛","time":"2026年9月7日","place":"线上","form":"线上","filler":"刘红锋","type":"中央配套"}],"1":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月1日","place":"线上","form":"线上","filler":"石瑛","type":"中央配套"},{"line":"早肺","region":"东一","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月1日","place":"线上","form":"线上","filler":"高征征","type":"中央配套"},{"line":"晚肺","region":"南区","zhanyi":"区域自办","name":"靶耀潇湘诊疗会","time":"9月1日-10月31","place":"腾讯会议","form":"线上","filler":"张猛","type":"中央配套"}],"20":[{"line":"早肺","region":"东一","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月20日","place":"南京","form":"线下","filler":"高征征","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月20日","place":"芜湖","form":"线下","filler":"余黎明","type":"中央配套"}],"19":[{"line":"早肺","region":"东一","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月19日","place":"扬州","form":"线下","filler":"高征征","type":"中央配套"},{"line":"晚肺","region":"东一","zhanyi":"53学苑-MDT","name":"53学苑系列项目-靶向治疗MDT规范诊疗会议","time":"2026年9月19日","place":"南京","form":"线下","filler":"高征征","type":"中央配套"},{"line":"早肺","region":"西部","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月19日","place":"成都","form":"线下","filler":"青杨","type":"中央配套"},{"line":"早肺","region":"西部","zhanyi":"53学苑-大咖行","name":"53学苑系列项目-肺凡之路大咖行","time":"2026年9月19日","place":"贵阳","form":"线下","filler":"王云","type":"中央配套"},{"line":"早肺","region":"东一","zhanyi":"53学苑-大咖行","name":"53学苑系列项目-肺凡之路大咖行","time":"2026年9月19日","place":"武汉","form":"线下","filler":"周莉","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月19日","place":"温州","form":"线下","filler":"邱悦","type":"中央配套"},{"line":"早肺","region":"南区","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月19日","place":"宜春","form":"线下","filler":"杨小梅","type":"中央配套"},{"line":"早肺","region":"南区","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月19日","place":"佛山","form":"线下","filler":"凌剑辉","type":"中央配套"},{"line":"晚肺","region":"南区","zhanyi":"53学苑-大咖行","name":"53学苑-大咖行","time":"2026年9月19日","place":"景德镇","form":"线下","filler":"杨小梅","type":"中央配套"},{"line":"早肺","region":"华北","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月19日","place":"石家庄","form":"线下","filler":"吴天琪","type":"中央配套"},{"line":"晚肺","region":"南区","zhanyi":"区域自办","name":"肺癌多学科肿瘤学学术交流会","time":"2026年9月19日","place":"上饶","form":"线下","filler":"杨小梅","type":"中央配套"},{"line":"晚肺","region":"南区","zhanyi":"区域自办","name":"胸部肿瘤MDT会议","time":"2026年9月19日","place":"深圳","form":"线下","filler":"陈楷佳","type":"中央配套"},{"line":"晚肺","region":"南区","zhanyi":"区域自办","name":"胸部肿瘤年会","time":"2026年9月19日","place":"广州","form":"线下","filler":"凌剑辉","type":"中央配套"},{"line":"晚肺","region":"南区","zhanyi":"区域自办","name":"53学院大咖行","time":"2026年9月19日","place":"景德镇","form":"线下","filler":"杨小梅","type":"中央配套"},{"line":"晚肺","region":"南区","zhanyi":"区域自办","name":"世界中医药学会联合会临床用药安全研究专业委员会","time":"2026年9月19日","place":"线下","form":"线下","filler":"凌剑辉","type":"中央配套"},{"line":"晚肺","region":"东南","zhanyi":"区域自办","name":"肺癌精准诊疗与全程管理系列前沿研讨会-皖南呼吸联盟","time":"9月19日","place":"宣城","form":"线下","filler":"余黎明","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"区域自办","name":"围术期全程管理手术病例视频分享","time":"9月19日","place":"福州","form":"线下","filler":"江正萍","type":"中央配套"},{"line":"晚肺","region":"中央","zhanyi":"53学苑","name":"53学苑-MDT","time":"2026/9/19","place":"武汉","form":"线下","filler":"徐超","type":"中央市场"}],"10":[{"line":"早肺","region":"西部","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月10日","place":"","form":"线上","filler":"王云","type":"中央配套"},{"line":"晚肺","region":"西北","zhanyi":"区域自办","name":"融智共治-肺癌MDT临床实战交流项目","time":"2026年9月10日","place":"线上","form":"线上","filler":"荆琪","type":"中央配套"},{"line":"晚肺","region":"湘桂","zhanyi":"区域自办","name":"华湘胸部肿瘤精准诊疗论坛","time":"2026年9月10日","place":"线上","form":"线上","filler":"刘红锋","type":"中央配套"},{"line":"晚肺","region":"湘桂","zhanyi":"区域自办","name":"肺越极限靶化诊疗新视界线上会-肺癌多学科诊疗思辨会","time":"2026年9月10日","place":"线上","form":"线上","filler":"谭俊","type":"中央配套"},{"line":"早肺","region":"中央","zhanyi":"媒体矩阵","name":"早洞悉","time":"2026/9/10","place":"线上","form":"线上","filler":"关若然","type":"中央市场"}],"29":[{"line":"早肺","region":"东一","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月29日","place":"武汉","form":"线下","filler":"徐伟","type":"中央配套"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月29日","place":"线上","form":"线上","filler":"余黎明","type":"中央配套"},{"line":"晚肺","region":"东南","zhanyi":"区域自办","name":"第七期肺癌精准诊疗与全程管理系列前沿研讨会","time":"9月29日","place":"腾讯会议","form":"线上","filler":"余黎明","type":"中央配套"}],"27":[{"line":"早肺","region":"东南","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月27日","place":"温州","form":"线下","filler":"邱悦","type":"中央配套"}],"22":[{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月22日","place":"线上","form":"线上","filler":"郭田","type":"中央配套"},{"line":"晚肺","region":"湘桂","zhanyi":"区域自办","name":"53学苑-湖南肺癌规范化诊疗交流会","time":"2026年9月22日","place":"线上","form":"线上","filler":"石文质","type":"中央配套"},{"line":"晚肺","region":"东南","zhanyi":"区域自办","name":"第七期肺癌精准诊疗与全程管理系列前沿研讨会","time":"9月22日","place":"腾讯会议","form":"线上","filler":"余黎明","type":"中央配套"}],"28":[{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月28日","place":"线上","form":"线上","filler":"武梦云","type":"中央配套"}],"26":[{"line":"晚肺","region":"东南","zhanyi":"区域自办","name":"肺愈新生-肿瘤多学科协作交流会","time":"9月26日","place":"厦门","form":"线下","filler":"沈圳煌","type":"中央配套"}],"11":[{"line":"早肺","region":"中央","zhanyi":"云端ARTS2.0","name":"云端ARTS","time":"2026/9/11","place":"线上","form":"线上","filler":"关若然","type":"中央市场"},{"line":"晚肺","region":"中央","zhanyi":"海外会","name":"支持HCP参与2026WCLC","time":"2026/9/11-15","place":"首尔","form":"线下","filler":"林岩威","type":"中央市场"},{"line":"晚肺","region":"中央","zhanyi":"肺凡新生--晚肺患者关爱","name":"肺凡新生--晚肺患者教育-大咖直播（线上）","time":"2026/9/11","place":"线上","form":"线上","filler":"李继娴","type":"中央市场"},{"line":"早肺","region":"中央","zhanyi":"NOL体系化合作","name":"胸外科学术大会","time":"2026/9/11","place":"线下","form":"线下","filler":"何若璇","type":"中央市场"},{"line":"晚肺","region":"中央","zhanyi":"放疗共识巡讲","name":"Advance研究者会","time":"2026/9/11","place":"线下","form":"线下","filler":"陈静雯","type":"中央市场"}],"21":[{"line":"早肺","region":"中央","zhanyi":"云端ARTS2.0","name":"云端ARTS","time":"2026/9/21","place":"线上","form":"线上","filler":"关若然","type":"中央市场"}],"4":[{"line":"晚肺","region":"中央","zhanyi":"NOL体系化合作","name":"CTOP 2026年度会议","time":"2026/9/4-6","place":"上海","form":"线下","filler":"徐超","type":"中央市场"}]},"pending":[{"line":"早肺","region":"西北","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"待定","place":"线上","form":"线上","filler":"姚怡","type":"中央配套"},{"line":"早肺","region":"华北","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"待定","place":"待定","form":"线下","filler":"周萌萌","type":"中央配套"},{"line":"早肺","region":"华北","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"待定","place":"郑州","form":"线下","filler":"周萌萌","type":"中央配套"},{"line":"早肺","region":"北区","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"待定","place":"青岛","form":"线下","filler":"刘西凤","type":"中央配套"},{"line":"早肺","region":"东一","zhanyi":"区域自办","name":"肺同协行-肺癌多学科协作系列会议","time":"待定","place":"线上","form":"线上","filler":"周莉","type":"中央配套"},{"line":"早肺","region":"东一","zhanyi":"区域自办","name":"肺同协行-肺癌多学科协作系列会议","time":"待定","place":"线上","form":"线上","filler":"周莉","type":"中央配套"},{"line":"早肺","region":"东一","zhanyi":"区域自办","name":"肺同协行-肺癌多学科协作系列会议","time":"待定","place":"线上","form":"线上","filler":"周莉","type":"中央配套"},{"line":"晚肺","region":"西北","zhanyi":"区域自办","name":"靶见新知-合智致远 肺癌靶向诊疗前沿进展学术交流会","time":"待定","place":"线上","form":"线上","filler":"姚怡","type":"中央配套"},{"line":"晚肺","region":"西北","zhanyi":"区域自办","name":"靶见新知-合智致远 肺癌靶向诊疗前沿进展学术交流会","time":"待定","place":"线上","form":"线上","filler":"姚怡","type":"中央配套"},{"line":"晚肺","region":"西北","zhanyi":"区域自办","name":"靶见新知-合智致远 肺癌靶向诊疗前沿进展学术交流会","time":"待定","place":"线上","form":"线上","filler":"姚怡","type":"中央配套"},{"line":"晚肺","region":"中央","zhanyi":"53学苑","name":"53学苑-MDT","time":"待定","place":"郑州","form":"线上+线下","filler":"徐超","type":"中央市场"},{"line":"早肺","region":"中央","zhanyi":"肺凡新生--早肺患者关爱项目","name":"线下患教-上海-待定","time":"待定","place":"线下","form":"线下","filler":"孙雪婷","type":"中央市场"}],"mismatch":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年10月12日","place":"线上","form":"线上","filler":"石瑛","type":"中央配套"},{"line":"晚肺","region":"北区","zhanyi":"53学苑-MDT","name":"53学苑系列项目-靶向治疗MDT规范诊疗会议","time":"2026年11月1日","place":"沈阳","form":"线下","filler":"石瑛","type":"中央配套"},{"line":"早肺","region":"北区","zhanyi":"区域自办","name":"美乐肺腑-肺癌精准诊疗项目","time":"2026年8月27日","place":"","form":"线上","filler":"刘西凤","type":"中央配套"}],"total":141};
+const DATA = {"calendar":{"6":[{"line":"晚肺","region":"西北","zhanyi":"53学苑-MDT","name":"53学苑系列项目-靶向治疗MDT规范诊疗会议","time":"2026年9月6日","place":"长治","form":"线下","filler":"张娇","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月6日","place":"长春","form":"线上","filler":"马翠霞","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月6日","place":"线上","form":"线上","filler":"刘西凤","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月6日","place":"上海","form":"线下","filler":"杨紊斌","type":"中央配套","status":"正常开展"}],"12":[{"line":"早肺","region":"西北","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月12日","place":"银川","form":"线下","filler":"姚怡","type":"中央配套","status":"正常开展"},{"line":"晚肺","region":"华北","zhanyi":"53学苑-MDT","name":"53学苑系列项目-靶向治疗MDT规范诊疗会议","time":"2026年9月12日","place":"许昌","form":"线下","filler":"周萌萌","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东一","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月12日","place":"苏州","form":"线下","filler":"郑昭","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东一","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月12日","place":"常州","form":"线下","filler":"郑昭","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"西部","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月12日","place":"昆明","form":"线下","filler":"王云","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"西部","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月12日","place":"","form":"线上","filler":"王云","type":"中央配套","status":"待反馈"},{"line":"早肺","region":"西部","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月12日","place":"成都","form":"线下","filler":"胡东杰","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月12日","place":"福州","form":"线下","filler":"杨紊斌","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月12日","place":"杭州","form":"线下","filler":"邱悦","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"西部","zhanyi":"美乐肺辅-区域赛","name":"围术期诊疗学术会议","time":"2026年9月12日","place":"成都","form":"线下","filler":"青杨","type":"中央配套","status":"正常开展"}],"2":[{"line":"早肺","region":"西北","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月2日","place":"线上","form":"线上","filler":"姚怡","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"湘桂","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月2日","place":"线上","form":"线上","filler":"潘越","type":"中央配套","status":"正常开展"}],"17":[{"line":"早肺","region":"西北","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月17日","place":"线上","form":"线上","filler":"张娇","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"西北","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月17日","place":"线上","form":"线上","filler":"张娇","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月17日","place":"线上","form":"线上","filler":"刘西凤","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东一","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月17日","place":"武汉","form":"线上","filler":"徐伟","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月17日","place":"线上","form":"线上","filler":"武梦云","type":"中央配套","status":"正常开展"}],"5":[{"line":"早肺","region":"华北","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月5日","place":"安阳","form":"线下","filler":"周萌萌","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东一","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月5日","place":"苏州","form":"线下","filler":"郑昭","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"西部","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月5日","place":"昆明","form":"线下","filler":"王云","type":"中央配套","status":"正常开展"},{"line":"晚肺","region":"东南","zhanyi":"53学苑-MDT","name":"53学苑系列项目-靶向治疗MDT规范诊疗会议","time":"2026年9月5日","place":"温州","form":"线下","filler":"杨紊斌","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月5日","place":"合肥","form":"线下","filler":"余黎明","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月5日","place":"蚌埠","form":"线下","filler":"武梦云","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"南区","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月5日","place":"吉安","form":"线下","filler":"杨小梅","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"中央","zhanyi":"美乐肺腑-围手术期全程管理项目","name":"美乐肺腑-阿美替尼手术视频宣传（线上）","time":"2026/9/5","place":"线上","form":"线上","filler":"何若璇","type":"中央市场","status":"正常开展"}],"13":[{"line":"早肺","region":"北区","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月13日","place":"大庆","form":"线下","filler":"马翠霞","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"北区","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月13日","place":"长春","form":"线下","filler":"马翠霞","type":"中央配套","status":"正常开展"},{"line":"晚肺","region":"北区","zhanyi":"53学苑-MDT","name":"53学苑系列项目-靶向治疗MDT规范诊疗会议","time":"2026年9月13日","place":"青岛","form":"线下","filler":"刘西凤","type":"中央配套","status":""},{"line":"早肺","region":"东一","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月13日","place":"徐州","form":"线下","filler":"郑昭","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东一","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月13日","place":"重庆","form":"线下","filler":"姚代学","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"西部","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月13日","place":"成都","form":"线上","filler":"胡东杰","type":"中央配套","status":"待反馈"},{"line":"早肺","region":"南区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月13日","place":"线上","form":"线上","filler":"凌剑辉","type":"中央配套","status":"正常开展"}],"9":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月9日","place":"哈尔滨","form":"线上","filler":"马翠霞","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"南区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月9日","place":"线上","form":"线上","filler":"杨小梅","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"南区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月9日","place":"线上","form":"线上","filler":"陈楷佳","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"西部","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月9日","place":"线上","form":"线上","filler":"青杨","type":"中央配套","status":"正常开展"}],"16":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月16日","place":"哈尔滨","form":"线上","filler":"马翠霞","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月16日","place":"线上","form":"线上","filler":"江正萍","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月16日","place":"线上","form":"线上","filler":"郭田","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"南区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月16日","place":"线上","form":"线上","filler":"杨小梅","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"南区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月16日","place":"线上","form":"线上","filler":"陈楷佳","type":"中央配套","status":"正常开展"},{"line":"晚肺","region":"中央","zhanyi":"NOL体系化合作","name":"CSCO 2026年度会议","time":"2026/9/16-20","place":"济南","form":"线上+线下","filler":"徐超","type":"中央市场","status":"正常开展"},{"line":"早肺","region":"中央","zhanyi":"媒体矩阵","name":"早案鉴","time":"2026/9/16","place":"线上","form":"线上","filler":"关若然","type":"中央市场","status":"正常开展"}],"23":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月23日","place":"沈阳","form":"线上","filler":"贾凌慧","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月23日","place":"线上","form":"线上","filler":"石瑛","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月23日","place":"线上","form":"线上","filler":"邱悦","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"南区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月23日","place":"线上","form":"线上","filler":"凌剑辉","type":"中央配套","status":"正常开展"}],"24":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月24日","place":"沈阳","form":"线上","filler":"贾凌慧","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月24日","place":"线上","form":"线上","filler":"邱悦","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月24日","place":"线上","form":"线上","filler":"武梦云","type":"中央配套","status":"正常开展"}],"14":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月14日","place":"沈阳","form":"线上","filler":"贾凌慧","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月14日","place":"线上","form":"线上","filler":"张娟","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"中央","zhanyi":"媒体矩阵","name":"早察会(2026CACA全域科普行动）","time":"2026/9/14","place":"线上","form":"线上","filler":"关若然","type":"中央市场","status":"正常开展"}],"15":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月15日","place":"大连","form":"线上","filler":"贾凌慧","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月15日","place":"线上","form":"线上","filler":"沈圳煌","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"湘桂","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月15日","place":"线上","form":"线上","filler":"潘越","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"湘桂","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月15日","place":"线上","form":"线上","filler":"黄雪意","type":"中央配套","status":"正常开展"}],"3":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月3日","place":"线上","form":"线上","filler":"刘西凤","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东一","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月3日","place":"武汉","form":"线上","filler":"徐伟","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月3日","place":"线上","form":"线上","filler":"邱悦","type":"中央配套","status":"正常开展"}],"7":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月7日","place":"线上","form":"线上","filler":"张娟","type":"中央配套","status":"正常开展"}],"1":[{"line":"早肺","region":"北区","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月1日","place":"线上","form":"线上","filler":"石瑛","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东一","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月1日","place":"线上","form":"线上","filler":"高征征","type":"中央配套","status":"正常开展"}],"20":[{"line":"早肺","region":"东一","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月20日","place":"南京","form":"线下","filler":"高征征","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月20日","place":"芜湖","form":"线下","filler":"余黎明","type":"中央配套","status":"正常开展"}],"19":[{"line":"早肺","region":"东一","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月19日","place":"扬州","form":"线下","filler":"高征征","type":"中央配套","status":"正常开展"},{"line":"晚肺","region":"东一","zhanyi":"53学苑-MDT","name":"53学苑系列项目-靶向治疗MDT规范诊疗会议","time":"2026年9月19日","place":"南京","form":"线下","filler":"高征征","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"西部","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月19日","place":"成都","form":"线下","filler":"青杨","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"西部","zhanyi":"53学苑-大咖行","name":"53学苑系列项目-肺凡之路大咖行","time":"2026年9月19日","place":"贵阳","form":"线下","filler":"王云","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东一","zhanyi":"53学苑-大咖行","name":"53学苑系列项目-肺凡之路大咖行","time":"2026年9月19日","place":"武汉","form":"线下","filler":"周莉","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月19日","place":"温州","form":"线下","filler":"邱悦","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"南区","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月19日","place":"宜春","form":"线下","filler":"杨小梅","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"南区","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月19日","place":"佛山","form":"线下","filler":"凌剑辉","type":"中央配套","status":"正常开展"},{"line":"晚肺","region":"南区","zhanyi":"53学苑-大咖行","name":"53学苑-大咖行","time":"2026年9月19日","place":"景德镇","form":"线下","filler":"杨小梅","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"华北","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"2026年9月19日","place":"石家庄","form":"线下","filler":"吴天琪","type":"中央配套","status":""},{"line":"晚肺","region":"中央","zhanyi":"53学苑","name":"53学苑-MDT","time":"2026/9/19","place":"武汉","form":"线下","filler":"徐超","type":"中央市场","status":"正常开展"}],"10":[{"line":"早肺","region":"西部","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"2026年9月10日","place":"","form":"线上","filler":"王云","type":"中央配套","status":"待反馈"},{"line":"早肺","region":"中央","zhanyi":"媒体矩阵","name":"早洞悉","time":"2026/9/10","place":"线上","form":"线上","filler":"关若然","type":"中央市场","status":"正常开展"}],"29":[{"line":"早肺","region":"东一","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月29日","place":"武汉","form":"线下","filler":"徐伟","type":"中央配套","status":"正常开展"},{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月29日","place":"线上","form":"线上","filler":"余黎明","type":"中央配套","status":"正常开展"}],"27":[{"line":"早肺","region":"东南","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"2026年9月27日","place":"温州","form":"线下","filler":"邱悦","type":"中央配套","status":"正常开展"}],"22":[{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月22日","place":"线上","form":"线上","filler":"郭田","type":"中央配套","status":"正常开展"}],"8":[{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月8日","place":"线上","form":"线上","filler":"沈圳煌","type":"中央配套","status":"正常开展"}],"28":[{"line":"早肺","region":"东南","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"9月28日","place":"线上","form":"线上","filler":"武梦云","type":"中央配套","status":"正常开展"}],"18":[{"line":"晚肺","region":"南区","zhanyi":"53学苑-MDT","name":"53学苑系列项目-靶向治疗MDT规范诊疗会议","time":"2026年9月18日","place":"广州","form":"线下","filler":"凌剑辉","type":"中央配套","status":"正常开展"}],"11":[{"line":"早肺","region":"中央","zhanyi":"云端ARTS2.0","name":"云端ARTS","time":"2026/9/11","place":"线上","form":"线上","filler":"关若然","type":"中央市场","status":"正常开展"},{"line":"晚肺","region":"中央","zhanyi":"海外会","name":"支持HCP参与2026WCLC","time":"2026/9/11-15","place":"首尔","form":"线下","filler":"林岩威","type":"中央市场","status":"正常开展"},{"line":"晚肺","region":"中央","zhanyi":"肺凡新生--晚肺患者关爱","name":"肺凡新生--晚肺患者教育-大咖直播（线上）","time":"2026/9/11","place":"线上","form":"线上","filler":"李继娴","type":"中央市场","status":"正常开展"},{"line":"早肺","region":"中央","zhanyi":"NOL体系化合作","name":"胸外科学术大会","time":"2026/9/11","place":"线下","form":"线下","filler":"何若璇","type":"中央市场","status":"正常开展"},{"line":"晚肺","region":"中央","zhanyi":"放疗共识巡讲","name":"Advance研究者会","time":"2026/9/11","place":"线下","form":"线下","filler":"陈静雯","type":"中央市场","status":"正常开展"}],"21":[{"line":"早肺","region":"中央","zhanyi":"云端ARTS2.0","name":"云端ARTS","time":"2026/9/21","place":"线上","form":"线上","filler":"关若然","type":"中央市场","status":"正常开展"}],"4":[{"line":"晚肺","region":"中央","zhanyi":"NOL体系化合作","name":"CTOP 2026年度会议","time":"2026/9/4-6","place":"上海","form":"线下","filler":"徐超","type":"中央市场","status":"正常开展"}]},"pending":[{"line":"早肺","region":"西北","zhanyi":"胸外老友线上会","name":"肿瘤疾病诊疗管理与促进项目-早期胸部肿瘤线上交流会","time":"待定","place":"线上","form":"线上","filler":"姚怡","type":"中央配套","status":"待反馈"},{"line":"早肺","region":"华北","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"待定","place":"待定","form":"线下","filler":"周萌萌","type":"中央配套","status":"待反馈"},{"line":"早肺","region":"华北","zhanyi":"美乐肺腑省级赛","name":"围术期全程诊疗学术交流会","time":"待定","place":"郑州","form":"线下","filler":"周萌萌","type":"中央配套","status":"待反馈"},{"line":"早肺","region":"北区","zhanyi":"美乐肺辅-区域赛","name":"围术期全程诊疗学术交流会","time":"待定","place":"青岛","form":"线下","filler":"刘西凤","type":"中央配套","status":"正常开展"}],"mismatch":[],"total":96};
 
 /* ===== 工具 ===== */
 const YEAR = 2026, MONTH = 8; // 9月（0起始）
@@ -273,6 +330,137 @@ function regionColor(region){
   return REGION_PALETTE[idx]; // [background, color]
 }
 
+/* ===== 筛选（区域 / 战役 / 肺肿线，多选） ===== */
+function distinctValues(getter){
+  const s = new Set();
+  const add = arr => (arr || []).forEach(it => { const v = getter(it); if(v && String(v).trim() !== '') s.add(v); });
+  for(const d in DATA.calendar) add(DATA.calendar[d]);
+  add(DATA.pending); add(DATA.mismatch);
+  return [...s];
+}
+const regionOptions = distinctValues(it => it.region)
+  .sort((a, b) => (a === '中央' ? -1 : b === '中央' ? 1 : a.localeCompare(b, 'zh')));
+const zhanyiOptions = (() => {
+  const m = {};
+  const add = arr => (arr || []).forEach(it => { const v = it.zhanyi; if(v && String(v).trim() !== '') m[v] = (m[v] || 0) + 1; });
+  for(const d in DATA.calendar) add(DATA.calendar[d]);
+  add(DATA.pending); add(DATA.mismatch);
+  return Object.keys(m).sort((a, b) => (m[b] - m[a]) || a.localeCompare(b, 'zh'));
+})();
+
+const FILTER_DEFS = [
+  { key:'region', label:'区域',   getOpts:() => regionOptions },
+  { key:'zhanyi', label:'战役',   getOpts:() => zhanyiOptions },
+  { key:'line',   label:'肺肿线', getOpts:() => ['早肺','晚肺'] },
+];
+const filters = { region:new Set(), zhanyi:new Set(), line:new Set() };
+
+function passFilter(it){
+  if(filters.region.size && !filters.region.has(it.region)) return false;
+  if(filters.zhanyi.size && !filters.zhanyi.has(it.zhanyi)) return false;
+  if(filters.line.size   && !filters.line.has(it.line))     return false;
+  return true;
+}
+function filteredList(arr){ return (arr || []).filter(passFilter); }
+function totalFiltered(){
+  let n = 0;
+  for(const d in DATA.calendar) n += filteredList(DATA.calendar[d]).length;
+  return n;
+}
+
+let TOTAL = 0, MARKET = 0, REGIONAL = 0;
+for(const d in DATA.calendar) for(const it of DATA.calendar[d]){
+  TOTAL++;
+  if(it.type === '中央市场') MARKET++; else if(it.type === '中央配套') REGIONAL++;
+}
+
+function buildFilters(){
+  const bar = document.getElementById('filterBar');
+  FILTER_DEFS.forEach(def => {
+    const wrap = el('div', { class:'filter' });
+    const btn = el('button', { class:'filter-btn', attrs:{ type:'button' } });
+    const cnt = el('span', { class:'filter-count' });
+    btn.appendChild(document.createTextNode(def.label + ' '));
+    btn.appendChild(cnt);
+    btn.appendChild(document.createTextNode(' ▾'));
+    const panel = el('div', { class:'filter-panel', attrs:{ hidden:'' } });
+    const actions = el('div', { class:'filter-actions' });
+    const all = el('button', { class:'filter-link', attrs:{ type:'button' }, text:'全选' });
+    const clr = el('button', { class:'filter-link', attrs:{ type:'button' }, text:'清空' });
+    actions.appendChild(all); actions.appendChild(clr);
+    const opts = el('div', { class:'filter-options' });
+    def.getOpts().forEach(o => {
+      const lab = el('label', { class:'filter-opt' });
+      const cb = el('input', { attrs:{ type:'checkbox', value:o } });
+      cb.addEventListener('change', () => {
+        if(cb.checked) filters[def.key].add(o); else filters[def.key].delete(o);
+        onFilterChange();
+      });
+      lab.appendChild(cb);
+      lab.appendChild(document.createTextNode(' ' + o));
+      opts.appendChild(lab);
+    });
+    panel.appendChild(actions); panel.appendChild(opts);
+    all.addEventListener('click', () => { def.getOpts().forEach(o => filters[def.key].add(o)); syncFilterUI(); onFilterChange(); });
+    clr.addEventListener('click', () => { filters[def.key].clear(); syncFilterUI(); onFilterChange(); });
+    btn.addEventListener('click', (e) => { e.stopPropagation(); togglePanel(panel); });
+    wrap.appendChild(btn); wrap.appendChild(panel);
+    bar.appendChild(wrap);
+    def._cnt = cnt; def._btn = btn; def._panel = panel;
+  });
+  const reset = el('button', { class:'filter-reset', attrs:{ type:'button' }, text:'重置筛选' });
+  reset.addEventListener('click', () => {
+    filters.region.clear(); filters.zhanyi.clear(); filters.line.clear();
+    syncFilterUI(); onFilterChange();
+  });
+  bar.appendChild(reset);
+}
+
+function syncFilterUI(){
+  FILTER_DEFS.forEach(def => {
+    const n = filters[def.key].size;
+    def._cnt.textContent = n === 0 ? '（全部）' : `（${n}）`;
+    def._btn.classList.toggle('active', n > 0);
+    def._panel.querySelectorAll('input[type=checkbox]').forEach(cb => { cb.checked = filters[def.key].has(cb.value); });
+  });
+}
+
+function togglePanel(panel){
+  const isOpen = !panel.hasAttribute('hidden');
+  document.querySelectorAll('.filter-panel').forEach(p => p.setAttribute('hidden', ''));
+  if(!isOpen) panel.removeAttribute('hidden');
+}
+
+function onFilterChange(){
+  syncFilterUI();
+  renderGrid();
+  updateSubtitle();
+  const pd = filteredList(DATA.pending).length;
+  document.getElementById('dot-pending').textContent = String(pd);
+  document.getElementById('chip-pending').style.display = pd === 0 ? 'none' : '';
+  const md = filteredList(DATA.mismatch).length;
+  document.getElementById('dot-mismatch').textContent = String(md);
+  document.getElementById('chip-mismatch').style.display = md === 0 ? 'none' : '';
+  if(!overlay.hidden) closeOverlay();
+}
+
+function updateSubtitle(){
+  const active = filters.region.size || filters.zhanyi.size || filters.line.size;
+  const sub = document.getElementById('subtitle');
+  if(!active){
+    sub.textContent = `数据来源：中央配套 + 中央市场项目排期 · 9月共 ${TOTAL} 场活动安排（中央市场 ${MARKET} 场 · 区域市场 ${REGIONAL} 场）`;
+  } else {
+    sub.textContent = `已筛选 ${totalFiltered()} 场（共 ${TOTAL} 场）· 点击日期查看当日明细`;
+  }
+}
+
+/* 点击筛选栏以外区域关闭下拉 */
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.filter')){
+    document.querySelectorAll('.filter-panel').forEach(p => p.setAttribute('hidden', ''));
+  }
+});
+
 /* ===== 状态 ===== */
 let state = { level:'list', listKind:'day', day:null, index:null };
 let lastTrigger = null;
@@ -297,7 +485,7 @@ function renderGrid(){
     grid.appendChild(el('div', { class:'day-cell empty' }));
   }
   for(let d = 1; d <= 30; d++){
-    const items = DATA.calendar[String(d)] || [];
+    const items = filteredList(DATA.calendar[String(d)]);
     if(items.length > 0){
       const cell = el('button', {
         class:'day-cell active',
@@ -320,9 +508,9 @@ function renderGrid(){
 
 /* ===== 数据获取 ===== */
 function currentItems(){
-  if(state.listKind === 'day') return DATA.calendar[String(state.day)] || [];
-  if(state.listKind === 'pending') return DATA.pending;
-  if(state.listKind === 'mismatch') return DATA.mismatch;
+  if(state.listKind === 'day') return filteredList(DATA.calendar[String(state.day)]);
+  if(state.listKind === 'pending') return filteredList(DATA.pending);
+  if(state.listKind === 'mismatch') return filteredList(DATA.mismatch);
   return [];
 }
 
@@ -351,6 +539,7 @@ function buildCard(item, idx){
 
 /* ===== 浮层渲染 ===== */
 function renderOverlay(){
+  if(state.view === 'region'){ renderRegionView(); return; }
   headerLeft.innerHTML = '';
   headerCenter.innerHTML = '';
   modalBody.innerHTML = '';
@@ -398,6 +587,75 @@ function renderOverlay(){
   }
 }
 
+/* ===== 区域进度总览 ===== */
+function computeRegionStats(){
+  // 仅统计 9 月当月数据（与日历一致），并应用当前筛选
+  const items = [];
+  for(const d in DATA.calendar) for(const it of DATA.calendar[d]) if(passFilter(it)) items.push(it);
+  for(const it of DATA.pending) if(passFilter(it)) items.push(it);
+
+  const byRegion = {};
+  for(const it of items){
+    const region = val(it.region);
+    const line = (it.line || '').trim();
+    if(line !== '早肺' && line !== '晚肺') continue; // 仅统计早肺/晚肺
+    const done = (it.status || '').trim() === '已完成';
+    byRegion[region] = byRegion[region] || { region: region, early:{ total:0, done:0 }, late:{ total:0, done:0 } };
+    const b = byRegion[region];
+    if(line === '早肺'){ b.early.total++; if(done) b.early.done++; }
+    else { b.late.total++; if(done) b.late.done++; }
+  }
+
+  const arr = Object.values(byRegion).filter(b => b.early.total || b.late.total);
+  const ratio = b => { const t = b.early.total + b.late.total, dn = b.early.done + b.late.done; return t ? dn / t : 0; };
+  const total = b => b.early.total + b.late.total;
+  // 先按已完成占比降序，再按总数量降序
+  arr.sort((a, b) => (ratio(b) - ratio(a)) || (total(b) - total(a)));
+  return arr;
+}
+
+function renderRegionView(){
+  headerLeft.innerHTML = '';
+  headerCenter.innerHTML = '';
+  modalBody.innerHTML = '';
+  headerCenter.appendChild(el('h2', { class:'modal-title', attrs:{ id:'modalTitle' }, text:'各区域完成进度' }));
+  modal.setAttribute('aria-label', '各区域完成进度');
+
+  modalBody.appendChild(el('div', { class:'note', html:'进度条：<strong style="color:#43A047">绿色=已完成</strong> · <strong style="color:#E53935">红色=未完成</strong>；仅统计 9 月当月（与日历一致），口径：仅执行情况为「已完成」计入完成。' }));
+
+  const stats = computeRegionStats();
+  const view = el('div', { class:'region-view' });
+  if(stats.length === 0){
+    view.appendChild(el('div', { class:'item-sub', text:'暂无符合条件的项目数据' }));
+  }
+  stats.forEach(b => {
+    const card = el('div', { class:'region-card' });
+    const [rbg, rfg] = regionColor(b.region);
+    const t = b.early.total + b.late.total, dn = b.early.done + b.late.done;
+    const head = el('div', { class:'region-card-head' });
+    head.appendChild(el('span', { class:'region-name', text: b.region, attrs:{ style:`color:${rbg};` } }));
+    head.appendChild(el('span', { class:'region-sum', text:`合计 已完成 ${dn} / 总 ${t}` }));
+    card.appendChild(head);
+
+    [['早肺', b.early], ['晚肺', b.late]].forEach(([ln, lg]) => {
+      const line = el('div', { class:'region-line' });
+      const lh = el('div', { class:'region-line-head' });
+      lh.appendChild(el('span', { class:'line-name', text: ln, attrs:{ style:`color:${rbg};` } }));
+      lh.appendChild(el('span', { class:'line-count', html:`已完成 <b>${lg.done}</b> / 总 <b>${lg.total}</b>` }));
+      line.appendChild(lh);
+      const track = el('div', { class:'prog-track' + (lg.total === 0 ? ' empty' : '') });
+      const pct = lg.total ? Math.round(lg.done / lg.total * 100) : 0;
+      const fill = el('div', { class:'prog-fill' + (lg.done === 0 ? ' zero' : '') });
+      if(lg.total > 0) fill.setAttribute('style', `width:${pct}%;`);
+      track.appendChild(fill);
+      line.appendChild(track);
+      card.appendChild(line);
+    });
+    view.appendChild(card);
+  });
+  modalBody.appendChild(view);
+}
+
 /* ===== 交互 ===== */
 function openDay(d, trigger){
   state = { level:'list', listKind:'day', day:d, index:null };
@@ -406,6 +664,11 @@ function openDay(d, trigger){
 }
 function openList(kind, trigger){
   state = { level:'list', listKind:kind, day:null, index:null };
+  renderOverlay();
+  openOverlay(trigger);
+}
+function openRegion(trigger){
+  state = { view:'region' };
   renderOverlay();
   openOverlay(trigger);
 }
@@ -451,29 +714,22 @@ overlay.addEventListener('keydown', (e) => {
 });
 
 /* 底部入口 */
+document.getElementById('chip-region').addEventListener('click', (e) => openRegion(e.currentTarget));
 document.getElementById('chip-pending').addEventListener('click', (e) => openList('pending', e.currentTarget));
 document.getElementById('chip-mismatch').addEventListener('click', (e) => openList('mismatch', e.currentTarget));
 document.getElementById('dot-pending').textContent = String(DATA.pending.length);
 document.getElementById('dot-mismatch').textContent = String(DATA.mismatch.length);
 
-// 排期（有日期）按类型统计：中央市场 / 区域市场（= 中央配套）
-(function () {
-  let total = 0, market = 0, regional = 0;
-  for (const day in DATA.calendar) {
-    for (const it of DATA.calendar[day]) {
-      total++;
-      if (it.type === '中央市场') market++;
-      else if (it.type === '中央配套') regional++;
-    }
-  }
-  document.getElementById('subtitle').textContent =
-    `数据来源：中央配套 + 中央市场项目排期 · 9月共 ${total} 场活动安排（中央市场 ${market} 场 · 区域市场 ${regional} 场）`;
-})();
+// 副标题由 updateSubtitle() 根据筛选动态生成（TOTAL / MARKET / REGIONAL 已在筛选区块计算）
+
 // 无数据时隐藏对应入口
 if (DATA.pending.length === 0) document.getElementById('chip-pending').style.display = 'none';
 if (DATA.mismatch.length === 0) document.getElementById('chip-mismatch').style.display = 'none';
 
 /* 初始化 */
+buildFilters();
+syncFilterUI();
+updateSubtitle();
 renderGrid();
 </script>
 </body>

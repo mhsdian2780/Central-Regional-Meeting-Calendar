@@ -2,6 +2,7 @@
 # 用法: python refresh_data.py <项目明细表.csv> <会议明细.csv> [输出data.json]
 #      [--proj-header N] [--meet-header N]   指定真实表头所在行(0-based)
 # 设计：列名按关键词匹配，容错表头微调；只保留 9 月；中央市场 region 强制=中央。
+# 项目明细表仅统计「中央配套」类型，区域自办全部剔除；活动收集表仅取 9 月中央活动。
 import sys, re, json, csv, os, argparse
 
 def find_col(header, *keys):
@@ -37,7 +38,7 @@ def build(proj_csv, meeting_csv, proj_header=0, meet_header=0):
     pending = []
     mismatch = []
 
-    def ingest(path, typ, force_region=None, header_row=0):
+    def ingest(path, typ, force_region=None, header_row=0, type_keep=None):
         with open(path, encoding='utf-8-sig', newline='') as f:
             rows = list(csv.reader(f))
         if not rows: return
@@ -51,17 +52,22 @@ def build(proj_csv, meeting_csv, proj_header=0, meet_header=0):
         c_place  = find_col(header, '活动地点')
         c_form   = find_col(header, '活动形式')
         c_region = find_col(header, '区域')
+        c_status = find_col(header, '执行情况')
+        c_type   = find_col(header, '类型')
         for r in rows[header_row + 1:]:
             rec = dict(zip(header, r))
             g = lambda k: norm(rec.get(k, ''))
             if not g(c_name) and not g(c_zhanyi) and not g(c_time):
                 continue  # 跳过空行
+            # 项目明细表：仅统计「中央配套」类型，区域自办全部剔除
+            if type_keep is not None:
+                src = g(c_type) if c_type else ''
+                if not type_keep(src):
+                    continue
             month = month_of(g(c_month)) if c_month else None
             time = g(c_time)
             tmonth = month_of(time)
             target = month if month else tmonth
-            if target is not None and target != 9:
-                continue  # 只保留 9 月
             item = {
                 'line': g(c_line),
                 'region': force_region if force_region else (g(c_region) if c_region else '—'),
@@ -72,15 +78,21 @@ def build(proj_csv, meeting_csv, proj_header=0, meet_header=0):
                 'form': g(c_form),
                 'filler': g(c_filler),
                 'type': typ,
+                'status': g(c_status) if c_status else '',
             }
-            if target == 9 and tmonth is not None and tmonth != 9:
-                mismatch.append(item); continue
+            if target is None:
+                continue  # 无有效月份信息，无法判定为 9 月，剔除
+            if target != 9:
+                continue  # 非 9 月，剔除
+            if tmonth is not None and tmonth != 9:
+                mismatch.append(item); continue  # 月份标 9 月但活动时间月份不一致
             d = day_of(time)
             if d is None:
-                pending.append(item); continue
+                pending.append(item); continue  # 9 月但日期待定
             calendar.setdefault(str(d), []).append(item)
 
-    ingest(proj_csv, '中央配套', header_row=proj_header)
+    ingest(proj_csv, '中央配套', header_row=proj_header,
+           type_keep=lambda t: '中央配套' in t and '区域自办' not in t)
     if meeting_csv and os.path.exists(meeting_csv):
         ingest(meeting_csv, '中央市场', force_region='中央', header_row=meet_header)
 

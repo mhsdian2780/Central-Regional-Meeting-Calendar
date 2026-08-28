@@ -1,0 +1,8 @@
+# 临时数据文件（由刷新脚本生成，不进仓库；GitHub Pages 只需 index.html）
+_proj.csv
+_meet.csv
+_check.js
+*.tmp
+
+# 自有服务器方案（GitHub Pages 为纯静态，不需要 Node 服务）
+server.js

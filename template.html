@@ -1,0 +1,471 @@
+<!--
+  设计系统：中央配套 / 中央市场 2026年9月项目日历 · 设计令牌（由 design-system-expert 提供）
+  主色 #14538F / 辅色 #EAF2FB / 强调 #F2820C / 正文 #1F2933 / 次要 #6B7280 / 弱化 #9AA5B1 / 分隔 #E5E7EB / 背景 #FFFFFF
+  纯色平涂、无渐变、仅 1px 描边；单文件、零外部依赖（无 CDN / 无外链字体 / 无图片 / 无 fetch）。
+  打开方式：双击本 .html 文件即可在浏览器运行（需启用 JavaScript）。
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中央配套 / 中央市场 · 2026年9月项目日历</title>
+<style>
+  :root{
+    --c-primary:#14538F;
+    --c-sub:#EAF2FB;
+    --c-accent:#F2820C;
+    --c-text:#1F2933;
+    --c-sub2:#6B7280;
+    --c-weak:#9AA5B1;
+    --c-divider:#E5E7EB;
+    --c-bg:#FFFFFF;
+    --c-mask:rgba(15,23,42,.45);
+    --radius-cell:10px;
+    --radius-modal:12px;
+    --gap:8px;
+    --pad-modal:24px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+    color:var(--c-text);
+    background:var(--c-bg);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  .page{max-width:960px;margin:0 auto;padding:32px 20px 104px;}
+  .page-header{margin-bottom:24px;}
+  .page-header h1{font-size:22px;font-weight:600;color:var(--c-primary);margin:0 0 6px;}
+  .page-header .subtitle{font-size:13px;color:var(--c-sub2);margin:0;}
+
+  /* 星期头 */
+  .weekday-row{display:grid;grid-template-columns:repeat(7,1fr);gap:var(--gap);margin-bottom:8px;}
+  .weekday-row div{font-size:13px;font-weight:500;color:var(--c-sub2);text-align:center;padding:4px 0;}
+
+  /* 网格 */
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:var(--gap);}
+  .day-cell{
+    position:relative;
+    min-height:62px;
+    border:1px solid transparent;
+    border-radius:var(--radius-cell);
+    background:var(--c-bg);
+    display:flex;
+    align-items:flex-start;
+    justify-content:flex-start;
+    padding:10px 12px;
+    font-family:inherit;
+  }
+  .day-cell.empty{cursor:default;}
+  .day-cell.empty .day-num{color:var(--c-weak);}
+  .day-cell.active{
+    background:var(--c-sub);
+    cursor:pointer;
+    color:inherit;
+    text-align:left;
+  }
+  .day-cell.active:hover{border-color:var(--c-primary);}
+  .day-cell.active:focus-visible{outline:none;border-color:var(--c-primary);}
+  .day-num{font-size:22px;font-weight:600;color:var(--c-primary);line-height:1;}
+  .badge{
+    position:absolute;top:8px;right:8px;
+    min-width:20px;height:20px;padding:0 6px;
+    border-radius:999px;
+    background:var(--c-accent);
+    color:var(--c-text);font-size:12px;font-weight:700;
+    display:inline-flex;align-items:center;justify-content:center;
+    line-height:1;
+  }
+
+  /* 底部常驻入口 */
+  .bottom-bar{
+    position:fixed;left:0;right:0;bottom:0;
+    background:var(--c-bg);
+    border-top:1px solid var(--c-divider);
+    display:flex;gap:12px;justify-content:center;
+    padding:14px 16px;
+    z-index:50;
+  }
+  .chip{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--c-sub);
+    border:1px solid var(--c-divider);
+    border-radius:999px;
+    padding:8px 16px;
+    font-family:inherit;font-size:14px;font-weight:500;color:var(--c-primary);
+    cursor:pointer;
+  }
+  .chip:hover{border-color:var(--c-primary);}
+  .chip .dot{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:18px;height:18px;padding:0 5px;
+    border-radius:999px;background:var(--c-accent);color:#fff;
+    font-size:12px;font-weight:700;
+  }
+
+  /* 浮层 */
+  .overlay{
+    position:fixed;inset:0;
+    background:var(--c-mask);
+    display:flex;align-items:center;justify-content:center;
+    padding:16px;
+    z-index:100;
+  }
+  .overlay[hidden]{display:none;}
+  .modal{
+    width:480px;max-width:92vw;max-height:80vh;
+    background:#fff;border-radius:var(--radius-modal);
+    padding:var(--pad-modal);
+    overflow:auto;
+    display:flex;flex-direction:column;
+  }
+  .modal-header{
+    display:flex;align-items:flex-start;gap:12px;
+    padding-bottom:16px;margin-bottom:16px;
+    border-bottom:1px solid var(--c-divider);
+  }
+  .header-left{flex:0 0 auto;display:flex;align-items:center;}
+  .header-center{flex:1 1 auto;min-width:0;}
+  .header-right{flex:0 0 auto;}
+  .modal-title{font-size:18px;font-weight:600;color:var(--c-primary);margin:0;}
+  .back-btn{
+    background:none;border:none;cursor:pointer;
+    font-family:inherit;font-size:14px;font-weight:500;color:var(--c-primary);
+    padding:4px 0;margin-right:4px;white-space:nowrap;
+  }
+  .back-btn:hover{text-decoration:underline;}
+  .modal-close{
+    background:none;border:none;cursor:pointer;
+    font-size:22px;line-height:1;color:var(--c-sub2);
+    width:32px;height:32px;border-radius:8px;
+  }
+  .modal-close:hover{background:var(--c-sub);color:var(--c-primary);}
+  .detail-head .zhanyi{font-size:16px;font-weight:600;color:var(--c-text);}
+  .detail-head .name{font-size:14px;font-weight:400;color:var(--c-sub2);margin-top:4px;}
+  .note{
+    background:var(--c-sub);border:1px solid var(--c-divider);
+    border-radius:10px;padding:10px 12px;margin-bottom:14px;
+    font-size:13px;color:var(--c-text);
+  }
+  .note strong{color:var(--c-accent);font-weight:600;}
+  .item-list{display:flex;flex-direction:column;gap:10px;}
+  .item-card{
+    text-align:left;width:100%;
+    background:#fff;border:1px solid var(--c-divider);
+    border-radius:10px;padding:14px 16px;
+    cursor:pointer;font-family:inherit;
+    display:block;
+    transition:background .12s ease;
+  }
+  .item-card:hover{background:var(--c-sub);}
+  .item-card:focus-visible{outline:none;border-color:var(--c-primary);}
+  .item-main{font-size:16px;font-weight:600;color:var(--c-text);}
+  .item-sub{font-size:14px;font-weight:400;color:var(--c-sub2);margin-top:2px;}
+  .item-meta{display:flex;justify-content:space-between;gap:12px;margin-top:10px;align-items:center;}
+  .item-meta-left{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--c-sub2);flex-wrap:wrap;}
+  .item-type{font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;background:#EAF2FB;color:#14538F;white-space:nowrap;}
+  .item-region{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap;letter-spacing:.5px;}
+  .item-owner{font-size:13px;font-weight:500;color:var(--c-text);}
+  .item-time{font-size:13px;font-weight:500;color:var(--c-primary);white-space:nowrap;}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;}
+  .field-label{font-size:13px;font-weight:500;color:var(--c-sub2);margin-bottom:2px;}
+  .field-value{font-size:14px;color:var(--c-text);word-break:break-word;}
+
+  @media(max-width:640px){
+    .grid{grid-template-columns:repeat(2,1fr);}
+    .weekday-row{display:none;}
+    .day-cell{min-height:78px;}
+    .modal{max-height:85vh;padding:16px;}
+    .detail-grid{grid-template-columns:1fr;}
+    .page{padding:20px 14px 104px;}
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <header class="page-header">
+      <h1>中央配套 / 中央市场 · 2026年9月项目日历</h1>
+      <p class="subtitle" id="subtitle"></p>
+    </header>
+
+    <main>
+      <div class="weekday-row" aria-hidden="true">
+        <div>周一</div><div>周二</div><div>周三</div><div>周四</div>
+        <div>周五</div><div>周六</div><div>周日</div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </main>
+  </div>
+
+  <footer class="bottom-bar">
+    <button class="chip" id="chip-pending" type="button">待定 <span class="dot" id="dot-pending">0</span></button>
+    <button class="chip" id="chip-mismatch" type="button">月份不一致 <span class="dot" id="dot-mismatch">0</span></button>
+  </footer>
+
+  <div class="overlay" id="overlay" hidden>
+    <div class="modal" id="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div class="header-left" id="headerLeft"></div>
+        <div class="header-center" id="headerCenter"></div>
+        <div class="header-right">
+          <button class="modal-close" id="closeBtn" type="button" aria-label="关闭">×</button>
+        </div>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+<script>
+/* ===== 内联数据（源文件 calendar_data.json，整对象内联，无运行时 fetch） ===== */
+const DATA = /*__DATA__*/;
+
+/* ===== 工具 ===== */
+const YEAR = 2026, MONTH = 8; // 9月（0起始）
+const WEEK_CN = ['日','一','二','三','四','五','六'];
+const FIELDS = [
+  ['战役','zhanyi'], ['活动名称','name'], ['活动时间','time'], ['活动地点','place'],
+  ['活动形式','form'], ['类型','type'], ['负责人','filler'], ['肺肿线','line'], ['区域','region']
+];
+
+function el(tag, opts, children){
+  const e = document.createElement(tag);
+  opts = opts || {};
+  if(opts.class) e.className = opts.class;
+  if(opts.text != null) e.textContent = opts.text;
+  if(opts.html != null) e.innerHTML = opts.html;
+  if(opts.attrs) for(const k in opts.attrs) e.setAttribute(k, opts.attrs[k]);
+  if(opts.on) for(const k in opts.on) e.addEventListener(k, opts.on[k]);
+  if(children == null) children = [];
+  if(!Array.isArray(children)) children = [children];
+  children.forEach(c => { if(c == null) return; e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+  return e;
+}
+function weekdayCN(d){ return WEEK_CN[new Date(YEAR, MONTH, d).getDay()]; }
+function shortTime(t){ if(!t) return '—'; return String(t).replace(/^2026年/, ''); }
+function val(v){ return (v && String(v).trim() !== '') ? v : '—'; }
+
+/* ===== 区域配色：同一区域固定同色，不同区域不同色 ===== */
+const REGION_PALETTE = [
+  ['#1E88E5','#FFFFFF'], ['#E53935','#FFFFFF'], ['#43A047','#FFFFFF'], ['#FB8C00','#FFFFFF'],
+  ['#8E24AA','#FFFFFF'], ['#00ACC1','#FFFFFF'], ['#FDD835','#333333'], ['#6D4C41','#FFFFFF'],
+  ['#3949AB','#FFFFFF'], ['#D81B60','#FFFFFF'], ['#00897B','#FFFFFF'], ['#795548','#FFFFFF'],
+  ['#C0CA33','#333333'], ['#5E35B1','#FFFFFF'], ['#039BE5','#FFFFFF'], ['#7CB342','#333333']
+];
+function regionHash(s){
+  s = String(s || '');
+  let h = 0;
+  for(let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+function regionColor(region){
+  const idx = regionHash(region) % REGION_PALETTE.length;
+  return REGION_PALETTE[idx]; // [background, color]
+}
+
+/* ===== 状态 ===== */
+let state = { level:'list', listKind:'day', day:null, index:null };
+let lastTrigger = null;
+
+const overlay   = document.getElementById('overlay');
+const modal     = document.getElementById('modal');
+const headerLeft  = document.getElementById('headerLeft');
+const headerCenter= document.getElementById('headerCenter');
+const modalBody = document.getElementById('modalBody');
+const closeBtn  = document.getElementById('closeBtn');
+
+/* ===== L1 网格渲染 ===== */
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  const first = new Date(YEAR, MONTH, 1);
+  const lead = (first.getDay() + 6) % 7; // 周一为每周起始
+  const today = new Date();
+  const isSeptNow = (today.getFullYear() === YEAR && today.getMonth() === MONTH);
+
+  for(let i = 0; i < lead; i++){
+    grid.appendChild(el('div', { class:'day-cell empty' }));
+  }
+  for(let d = 1; d <= 30; d++){
+    const items = DATA.calendar[String(d)] || [];
+    if(items.length > 0){
+      const cell = el('button', {
+        class:'day-cell active',
+        attrs:{ 'type':'button', 'data-day':String(d), 'aria-label':`9月${d}日 共${items.length}场` },
+        on:{ click:(ev) => openDay(d, ev.currentTarget) }
+      });
+      cell.appendChild(el('span', { class:'day-num', text:String(d) }));
+      cell.appendChild(el('span', { class:'badge', text:String(items.length) }));
+      if(isSeptNow && today.getDate() === d){
+        cell.style.boxShadow = 'inset 0 0 0 2px var(--c-primary)';
+      }
+      grid.appendChild(cell);
+    } else {
+      const cell = el('div', { class:'day-cell empty' });
+      cell.appendChild(el('span', { class:'day-num', text:String(d) }));
+      grid.appendChild(cell);
+    }
+  }
+}
+
+/* ===== 数据获取 ===== */
+function currentItems(){
+  if(state.listKind === 'day') return DATA.calendar[String(state.day)] || [];
+  if(state.listKind === 'pending') return DATA.pending;
+  if(state.listKind === 'mismatch') return DATA.mismatch;
+  return [];
+}
+
+/* ===== 卡片 ===== */
+function buildCard(item, idx){
+  const card = el('button', {
+    class:'item-card', attrs:{ 'type':'button' },
+    on:{ click:() => openDetail(idx) }
+  });
+  card.appendChild(el('div', { class:'item-main', text: item.zhanyi }));
+  card.appendChild(el('div', { class:'item-sub', text: item.name }));
+  const meta = el('div', { class:'item-meta' });
+  const metaLeft = el('div', { class:'item-meta-left' });
+  metaLeft.appendChild(el('span', { class:'item-type', text: item.type || '—' }));
+  const [rbg, rfg] = regionColor(item.region);
+  metaLeft.appendChild(el('span', {
+    class:'item-region', text: val(item.region),
+    attrs:{ style:`background:${rbg};color:${rfg};` }
+  }));
+  metaLeft.appendChild(el('span', { class:'item-owner', text:`负责人：${val(item.filler)}` }));
+  meta.appendChild(metaLeft);
+  meta.appendChild(el('span', { class:'item-time', text: shortTime(item.time) }));
+  card.appendChild(meta);
+  return card;
+}
+
+/* ===== 浮层渲染 ===== */
+function renderOverlay(){
+  headerLeft.innerHTML = '';
+  headerCenter.innerHTML = '';
+  modalBody.innerHTML = '';
+
+  if(state.level === 'list'){
+    // 标题
+    const items = currentItems();
+    let titleText;
+    if(state.listKind === 'day'){
+      titleText = `9月${state.day}日 · 周${weekdayCN(state.day)}（${items.length}场）`;
+    } else if(state.listKind === 'pending'){
+      titleText = `时间待定（${items.length}）`;
+    } else {
+      titleText = `月份不一致（${items.length}）`;
+    }
+    headerCenter.appendChild(el('h2', { class:'modal-title', attrs:{ id:'modalTitle' }, text: titleText }));
+    modal.setAttribute('aria-label', titleText);
+
+    if(state.listKind === 'mismatch'){
+      modalBody.appendChild(el('div', { class:'note', html:'异常：<strong>活动月份标9月但活动时间写10月15日</strong>' }));
+    }
+    const list = el('div', { class:'item-list' });
+    items.forEach((it, i) => list.appendChild(buildCard(it, i)));
+    modalBody.appendChild(list);
+  } else {
+    // 详情：← 返回 + 头部战役/活动名
+    const back = el('button', { class:'back-btn', attrs:{ type:'button' }, text:'← 返回', on:{ click: backToList } });
+    headerLeft.appendChild(back);
+
+    const item = currentItems()[state.index];
+    const head = el('div', { class:'detail-head' });
+    head.appendChild(el('div', { class:'zhanyi', text: val(item.zhanyi) }));
+    head.appendChild(el('div', { class:'name', text: val(item.name) }));
+    headerCenter.appendChild(head);
+    modal.setAttribute('aria-label', val(item.zhanyi) + ' · ' + val(item.name));
+
+    const grid = el('div', { class:'detail-grid' });
+    FIELDS.forEach(([label, key]) => {
+      const f = el('div', { class:'field' });
+      f.appendChild(el('div', { class:'field-label', text: label }));
+      f.appendChild(el('div', { class:'field-value', text: val(item[key]) }));
+      grid.appendChild(f);
+    });
+    modalBody.appendChild(grid);
+  }
+}
+
+/* ===== 交互 ===== */
+function openDay(d, trigger){
+  state = { level:'list', listKind:'day', day:d, index:null };
+  renderOverlay();
+  openOverlay(trigger);
+}
+function openList(kind, trigger){
+  state = { level:'list', listKind:kind, day:null, index:null };
+  renderOverlay();
+  openOverlay(trigger);
+}
+function openDetail(idx){
+  state.index = idx;
+  state.level = 'detail';
+  renderOverlay();
+  const b = headerLeft.querySelector('.back-btn');
+  if(b) b.focus();
+}
+function backToList(){
+  state.level = 'list';
+  renderOverlay();
+  closeBtn.focus();
+}
+function openOverlay(trigger){
+  lastTrigger = trigger || document.activeElement;
+  overlay.hidden = false;
+  document.body.style.overflow = 'hidden';
+  closeBtn.focus();
+}
+function closeOverlay(){
+  if(overlay.hidden) return;
+  overlay.hidden = true;
+  document.body.style.overflow = '';
+  if(lastTrigger && typeof lastTrigger.focus === 'function') lastTrigger.focus();
+}
+
+/* 遮罩点击关闭 */
+overlay.addEventListener('click', (e) => { if(e.target === overlay) closeOverlay(); });
+/* × 关闭 */
+closeBtn.addEventListener('click', closeOverlay);
+/* Esc 关闭 */
+document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && !overlay.hidden) closeOverlay(); });
+/* 焦点陷阱 */
+overlay.addEventListener('keydown', (e) => {
+  if(e.key !== 'Tab') return;
+  const f = overlay.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])');
+  if(f.length === 0) return;
+  const first = f[0], last = f[f.length - 1];
+  if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+});
+
+/* 底部入口 */
+document.getElementById('chip-pending').addEventListener('click', (e) => openList('pending', e.currentTarget));
+document.getElementById('chip-mismatch').addEventListener('click', (e) => openList('mismatch', e.currentTarget));
+document.getElementById('dot-pending').textContent = String(DATA.pending.length);
+document.getElementById('dot-mismatch').textContent = String(DATA.mismatch.length);
+
+// 排期（有日期）按类型统计：中央市场 / 区域市场（= 中央配套）
+(function () {
+  let total = 0, market = 0, regional = 0;
+  for (const day in DATA.calendar) {
+    for (const it of DATA.calendar[day]) {
+      total++;
+      if (it.type === '中央市场') market++;
+      else if (it.type === '中央配套') regional++;
+    }
+  }
+  document.getElementById('subtitle').textContent =
+    `数据来源：中央配套 + 中央市场项目排期 · 9月共 ${total} 场活动安排（中央市场 ${market} 场 · 区域市场 ${regional} 场）`;
+})();
+// 无数据时隐藏对应入口
+if (DATA.pending.length === 0) document.getElementById('chip-pending').style.display = 'none';
+if (DATA.mismatch.length === 0) document.getElementById('chip-mismatch').style.display = 'none';
+
+/* 初始化 */
+renderGrid();
+</script>
+</body>
+</html>

@@ -8,17 +8,17 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title>中央配套 / 中央市场 · 2026年9月项目日历</title>
-<meta name="description" content="中央配套 / 中央市场 2026年9月全国项目排期日历。点击日期查看当日会议安排，手机可直接打开。">
-<meta property="og:title" content="中央配套 / 中央市场 · 2026年9月项目日历">
-<meta property="og:description" content="2026年9月全国项目排期 · 点击日期查看当日会议安排与明细，手机可直接打开。">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://mhsdian2780.github.io/Central-Regional-Meeting-Calendar/">
-<meta property="og:image" content="https://mhsdian2780.github.io/Central-Regional-Meeting-Calendar/cover.png">
-<meta property="og:site_name" content="中央配套/中央市场项目日历">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="wechat:card" content="cover">
+<meta content="中央配套 / 中央市场 2026年9月全国项目排期日历。点击日期查看当日会议安排，手机可直接打开。" name="description">
+<meta content="中央配套 / 中央市场 · 2026年9月项目日历" property="og:title">
+<meta content="2026年9月全国项目排期 · 点击日期查看当日会议安排与明细，手机可直接打开。" property="og:description">
+<meta content="website" property="og:type">
+<meta content="https://mhsdian2780.github.io/Central-Regional-Meeting-Calendar/" property="og:url">
+<meta content="https://mhsdian2780.github.io/Central-Regional-Meeting-Calendar/cover.png" property="og:image">
+<meta content="中央配套/中央市场项目日历" property="og:site_name">
+<meta content="summary_large_image" name="twitter:card">
+<meta content="cover" name="wechat:card">
 <style>
   :root{
     --c-primary:#14538F;
@@ -182,6 +182,23 @@
   .field-label{font-size:13px;font-weight:500;color:var(--c-sub2);margin-bottom:2px;}
   .field-value{font-size:14px;color:var(--c-text);word-break:break-word;}
 
+  /* 区域进度总览 */
+  .region-view{display:flex;flex-direction:column;gap:14px;}
+  .region-card{border:1px solid var(--c-divider);border-radius:12px;padding:16px 18px;background:#fff;}
+  .region-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;}
+  .region-name{font-size:16px;font-weight:700;letter-spacing:.5px;}
+  .region-sum{font-size:13px;color:var(--c-sub2);white-space:nowrap;}
+  .region-line{margin-top:12px;}
+  .region-line:first-of-type{margin-top:2px;}
+  .region-line-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px;}
+  .line-name{font-size:14px;font-weight:700;}
+  .line-count{font-size:13px;color:var(--c-sub2);white-space:nowrap;}
+  .line-count b{color:var(--c-text);font-weight:600;}
+  .prog-track{position:relative;width:100%;height:14px;border-radius:999px;background:#E53935;overflow:hidden;}
+  .prog-track.empty{background:var(--c-divider);}
+  .prog-fill{position:absolute;left:0;top:0;height:100%;background:#43A047;border-radius:999px 0 0 999px;}
+  .prog-fill.zero{border-radius:999px;}
+
   @media(max-width:640px){
     .grid{grid-template-columns:repeat(2,1fr);}
     .weekday-row{display:none;}
@@ -189,6 +206,44 @@
     .modal{max-height:85vh;padding:16px;}
     .detail-grid{grid-template-columns:1fr;}
     .page{padding:20px 14px 104px;}
+  }
+
+  /* 筛选栏 */
+  .filter-bar{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 18px;align-items:center;}
+  .filter{position:relative;}
+  .filter-btn{
+    display:inline-flex;align-items:center;gap:4px;
+    background:#fff;border:1px solid var(--c-divider);border-radius:8px;
+    padding:8px 14px;font-family:inherit;font-size:14px;font-weight:500;color:var(--c-primary);
+    cursor:pointer;
+  }
+  .filter-btn:hover{border-color:var(--c-primary);}
+  .filter-btn.active{background:var(--c-sub);border-color:var(--c-primary);}
+  .filter-count{color:var(--c-sub2);font-weight:400;}
+  .filter-btn.active .filter-count{color:var(--c-primary);}
+  .filter-panel{
+    position:absolute;top:calc(100% + 6px);left:0;z-index:60;
+    background:#fff;border:1px solid var(--c-divider);border-radius:10px;
+    box-shadow:0 8px 24px rgba(15,23,42,.12);
+    padding:10px;min-width:160px;max-height:300px;overflow:auto;
+  }
+  .filter-panel[hidden]{display:none;}
+  .filter-actions{display:flex;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--c-divider);}
+  .filter-link{background:none;border:none;font-family:inherit;font-size:13px;color:var(--c-primary);cursor:pointer;padding:2px 4px;}
+  .filter-link:hover{text-decoration:underline;}
+  .filter-options{display:flex;flex-direction:column;gap:2px;}
+  .filter-opt{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--c-text);padding:4px 6px;border-radius:6px;cursor:pointer;}
+  .filter-opt:hover{background:var(--c-sub);}
+  .filter-opt input{width:16px;height:16px;accent-color:var(--c-primary);cursor:pointer;}
+  .filter-hint{font-size:12px;line-height:1.5;color:var(--c-sub2);padding:2px 6px 6px;margin-bottom:2px;border-bottom:1px dashed var(--c-divider);}
+  .filter-reset{
+    background:none;border:1px dashed var(--c-divider);border-radius:8px;
+    padding:8px 14px;font-family:inherit;font-size:13px;color:var(--c-sub2);cursor:pointer;
+  }
+  .filter-reset:hover{border-color:var(--c-primary);color:var(--c-primary);}
+  @media(max-width:640px){
+    .filter-bar{gap:8px;}
+    .filter-panel{min-width:140px;max-width:80vw;}
   }
 </style>
 </head>
@@ -199,8 +254,10 @@
       <p class="subtitle" id="subtitle"></p>
     </header>
 
+    <div class="filter-bar" id="filterBar"></div>
+
     <main>
-      <div class="weekday-row" aria-hidden="true">
+      <div aria-hidden="true" class="weekday-row">
         <div>周一</div><div>周二</div><div>周三</div><div>周四</div>
         <div>周五</div><div>周六</div><div>周日</div>
       </div>
@@ -209,17 +266,18 @@
   </div>
 
   <footer class="bottom-bar">
+    <button class="chip" id="chip-region" type="button">区域进度</button>
     <button class="chip" id="chip-pending" type="button">待定 <span class="dot" id="dot-pending">0</span></button>
     <button class="chip" id="chip-mismatch" type="button">月份不一致 <span class="dot" id="dot-mismatch">0</span></button>
   </footer>
 
-  <div class="overlay" id="overlay" hidden>
-    <div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="overlay" hidden id="overlay">
+    <div aria-modal="true" class="modal" id="modal" role="dialog">
       <div class="modal-header">
         <div class="header-left" id="headerLeft"></div>
         <div class="header-center" id="headerCenter"></div>
         <div class="header-right">
-          <button class="modal-close" id="closeBtn" type="button" aria-label="关闭">×</button>
+          <button aria-label="关闭" class="modal-close" id="closeBtn" type="button">×</button>
         </div>
       </div>
       <div class="modal-body" id="modalBody"></div>
@@ -273,6 +331,182 @@ function regionColor(region){
   return REGION_PALETTE[idx]; // [background, color]
 }
 
+/* ===== 筛选（区域 / 战役 / 肺肿线，多选） ===== */
+function distinctValues(getter){
+  const s = new Set();
+  const add = arr => (arr || []).forEach(it => { const v = getter(it); if(v && String(v).trim() !== '') s.add(v); });
+  for(const d in DATA.calendar) add(DATA.calendar[d]);
+  add(DATA.pending); add(DATA.mismatch);
+  return [...s];
+}
+const regionOptions = distinctValues(it => it.region)
+  .sort((a, b) => (a === '中央' ? -1 : b === '中央' ? 1 : a.localeCompare(b, 'zh')));
+const zhanyiOptions = (() => {
+  const m = {};
+  const add = arr => (arr || []).forEach(it => { const v = it.zhanyi; if(v && String(v).trim() !== '') m[v] = (m[v] || 0) + 1; });
+  for(const d in DATA.calendar) add(DATA.calendar[d]);
+  add(DATA.pending); add(DATA.mismatch);
+  return Object.keys(m).sort((a, b) => (m[b] - m[a]) || a.localeCompare(b, 'zh'));
+})();
+/* 战役 ⇄ 肺肿线 归属映射（同一战役可能横跨早肺/晚肺，有任一场次命中即保留） */
+const zhanyiLineMap = (() => {
+  const m = {};
+  const add = arr => (arr || []).forEach(it => {
+    const z = it.zhanyi, l = it.line;
+    if(!z || String(z).trim() === '') return;
+    if(!m[z]) m[z] = new Set();
+    if(l && String(l).trim() !== '') m[z].add(l);
+  });
+  for(const d in DATA.calendar) add(DATA.calendar[d]);
+  add(DATA.pending); add(DATA.mismatch);
+  return m;
+})();
+/* 级联：按已选肺肿线收敛战役选项；未选肺肿线时显示全部战役 */
+function currentZhanyiOptions(){
+  if(!filters.line.size) return zhanyiOptions;
+  const picked = Array.from(filters.line);
+  return zhanyiOptions.filter(z => {
+    const ls = zhanyiLineMap[z];
+    return !!ls && picked.some(l => ls.has(l));
+  });
+}
+
+const FILTER_DEFS = [
+  { key:'region', label:'区域',   getOpts:() => regionOptions },
+  { key:'line',   label:'肺肿线', getOpts:() => ['早肺','晚肺'] },
+  { key:'zhanyi', label:'战役',   getOpts:currentZhanyiOptions },
+];
+/* 肺肿线变化后重算战役选项，并剔除已失效的战役勾选 */
+function syncZhanyiOptions(){
+  const def = FILTER_DEFS.filter(d => d.key === 'zhanyi')[0];
+  if(!def || !def._renderOpts) return;
+  const visible = currentZhanyiOptions();
+  Array.from(filters.zhanyi).forEach(z => { if(visible.indexOf(z) === -1) filters.zhanyi.delete(z); });
+  def._renderOpts();
+}
+const filters = { region:new Set(), zhanyi:new Set(), line:new Set() };
+
+function passFilter(it){
+  if(filters.region.size && !filters.region.has(it.region)) return false;
+  if(filters.zhanyi.size && !filters.zhanyi.has(it.zhanyi)) return false;
+  if(filters.line.size   && !filters.line.has(it.line))     return false;
+  return true;
+}
+function filteredList(arr){ return (arr || []).filter(passFilter); }
+function totalFiltered(){
+  let n = 0;
+  for(const d in DATA.calendar) n += filteredList(DATA.calendar[d]).length;
+  return n;
+}
+
+let TOTAL = 0, MARKET = 0, REGIONAL = 0;
+for(const d in DATA.calendar) for(const it of DATA.calendar[d]){
+  TOTAL++;
+  if(it.type === '中央市场') MARKET++; else if(it.type === '中央配套') REGIONAL++;
+}
+
+function buildFilters(){
+  const bar = document.getElementById('filterBar');
+  FILTER_DEFS.forEach(def => {
+    const wrap = el('div', { class:'filter' });
+    const btn = el('button', { class:'filter-btn', attrs:{ type:'button' } });
+    const cnt = el('span', { class:'filter-count' });
+    btn.appendChild(document.createTextNode(def.label + ' '));
+    btn.appendChild(cnt);
+    btn.appendChild(document.createTextNode(' ▾'));
+    const panel = el('div', { class:'filter-panel', attrs:{ hidden:'' } });
+    const actions = el('div', { class:'filter-actions' });
+    const all = el('button', { class:'filter-link', attrs:{ type:'button' }, text:'全选' });
+    const clr = el('button', { class:'filter-link', attrs:{ type:'button' }, text:'清空' });
+    actions.appendChild(all); actions.appendChild(clr);
+    const opts = el('div', { class:'filter-options' });
+    const renderOpts = () => {
+      opts.textContent = '';
+      const list = def.getOpts();
+      if(def.key === 'zhanyi' && filters.line.size){
+        opts.appendChild(el('div', { class:'filter-hint', text:'已按肺肿线「' + Array.from(filters.line).join(' / ') + '」筛选 · 共 ' + list.length + ' 个战役' }));
+      }
+      if(!list.length){
+        opts.appendChild(el('div', { class:'filter-hint', text:'当前肺肿线下无匹配战役' }));
+      }
+      list.forEach(o => {
+        const lab = el('label', { class:'filter-opt' });
+        const cb = el('input', { attrs:{ type:'checkbox', value:o } });
+        cb.checked = filters[def.key].has(o);
+        cb.addEventListener('change', () => {
+          if(cb.checked) filters[def.key].add(o); else filters[def.key].delete(o);
+          if(def.key === 'line') syncZhanyiOptions();
+          onFilterChange();
+        });
+        lab.appendChild(cb);
+        lab.appendChild(document.createTextNode(' ' + o));
+        opts.appendChild(lab);
+      });
+    };
+    def._renderOpts = renderOpts;
+    renderOpts();
+    panel.appendChild(actions); panel.appendChild(opts);
+    all.addEventListener('click', () => { def.getOpts().forEach(o => filters[def.key].add(o)); renderOpts(); onFilterChange(); });
+    clr.addEventListener('click', () => { filters[def.key].clear(); if(def.key === 'line') syncZhanyiOptions(); renderOpts(); onFilterChange(); });
+    btn.addEventListener('click', (e) => { e.stopPropagation(); togglePanel(panel); });
+    wrap.appendChild(btn); wrap.appendChild(panel);
+    bar.appendChild(wrap);
+    def._cnt = cnt; def._btn = btn; def._panel = panel;
+  });
+  const reset = el('button', { class:'filter-reset', attrs:{ type:'button' }, text:'重置筛选' });
+  reset.addEventListener('click', () => {
+    filters.region.clear(); filters.zhanyi.clear(); filters.line.clear();
+    FILTER_DEFS.forEach(d => { if(d._renderOpts) d._renderOpts(); });
+    syncFilterUI(); onFilterChange();
+  });
+  bar.appendChild(reset);
+}
+
+function syncFilterUI(){
+  FILTER_DEFS.forEach(def => {
+    const n = filters[def.key].size;
+    def._cnt.textContent = n === 0 ? '（全部）' : `（${n}）`;
+    def._btn.classList.toggle('active', n > 0);
+    def._panel.querySelectorAll('input[type=checkbox]').forEach(cb => { cb.checked = filters[def.key].has(cb.value); });
+  });
+}
+
+function togglePanel(panel){
+  const isOpen = !panel.hasAttribute('hidden');
+  document.querySelectorAll('.filter-panel').forEach(p => p.setAttribute('hidden', ''));
+  if(!isOpen) panel.removeAttribute('hidden');
+}
+
+function onFilterChange(){
+  syncFilterUI();
+  renderGrid();
+  updateSubtitle();
+  const pd = filteredList(DATA.pending).length;
+  document.getElementById('dot-pending').textContent = String(pd);
+  document.getElementById('chip-pending').style.display = pd === 0 ? 'none' : '';
+  const md = filteredList(DATA.mismatch).length;
+  document.getElementById('dot-mismatch').textContent = String(md);
+  document.getElementById('chip-mismatch').style.display = md === 0 ? 'none' : '';
+  if(!overlay.hidden) closeOverlay();
+}
+
+function updateSubtitle(){
+  const active = filters.region.size || filters.zhanyi.size || filters.line.size;
+  const sub = document.getElementById('subtitle');
+  if(!active){
+    sub.textContent = `数据来源：中央配套 + 中央市场项目排期 · 9月共 ${TOTAL} 场活动安排（中央市场 ${MARKET} 场 · 区域市场 ${REGIONAL} 场）`;
+  } else {
+    sub.textContent = `已筛选 ${totalFiltered()} 场（共 ${TOTAL} 场）· 点击日期查看当日明细`;
+  }
+}
+
+/* 点击筛选栏以外区域关闭下拉 */
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.filter')){
+    document.querySelectorAll('.filter-panel').forEach(p => p.setAttribute('hidden', ''));
+  }
+});
+
 /* ===== 状态 ===== */
 let state = { level:'list', listKind:'day', day:null, index:null };
 let lastTrigger = null;
@@ -297,7 +531,7 @@ function renderGrid(){
     grid.appendChild(el('div', { class:'day-cell empty' }));
   }
   for(let d = 1; d <= 30; d++){
-    const items = DATA.calendar[String(d)] || [];
+    const items = filteredList(DATA.calendar[String(d)]);
     if(items.length > 0){
       const cell = el('button', {
         class:'day-cell active',
@@ -320,9 +554,9 @@ function renderGrid(){
 
 /* ===== 数据获取 ===== */
 function currentItems(){
-  if(state.listKind === 'day') return DATA.calendar[String(state.day)] || [];
-  if(state.listKind === 'pending') return DATA.pending;
-  if(state.listKind === 'mismatch') return DATA.mismatch;
+  if(state.listKind === 'day') return filteredList(DATA.calendar[String(state.day)]);
+  if(state.listKind === 'pending') return filteredList(DATA.pending);
+  if(state.listKind === 'mismatch') return filteredList(DATA.mismatch);
   return [];
 }
 
@@ -351,6 +585,7 @@ function buildCard(item, idx){
 
 /* ===== 浮层渲染 ===== */
 function renderOverlay(){
+  if(state.view === 'region'){ renderRegionView(); return; }
   headerLeft.innerHTML = '';
   headerCenter.innerHTML = '';
   modalBody.innerHTML = '';
@@ -398,6 +633,75 @@ function renderOverlay(){
   }
 }
 
+/* ===== 区域进度总览 ===== */
+function computeRegionStats(){
+  // 仅统计 9 月当月数据（与日历一致），并应用当前筛选
+  const items = [];
+  for(const d in DATA.calendar) for(const it of DATA.calendar[d]) if(passFilter(it)) items.push(it);
+  for(const it of DATA.pending) if(passFilter(it)) items.push(it);
+
+  const byRegion = {};
+  for(const it of items){
+    const region = val(it.region);
+    const line = (it.line || '').trim();
+    if(line !== '早肺' && line !== '晚肺') continue; // 仅统计早肺/晚肺
+    const done = (it.status || '').trim() === '已完成';
+    byRegion[region] = byRegion[region] || { region: region, early:{ total:0, done:0 }, late:{ total:0, done:0 } };
+    const b = byRegion[region];
+    if(line === '早肺'){ b.early.total++; if(done) b.early.done++; }
+    else { b.late.total++; if(done) b.late.done++; }
+  }
+
+  const arr = Object.values(byRegion).filter(b => b.early.total || b.late.total);
+  const ratio = b => { const t = b.early.total + b.late.total, dn = b.early.done + b.late.done; return t ? dn / t : 0; };
+  const total = b => b.early.total + b.late.total;
+  // 先按已完成占比降序，再按总数量降序
+  arr.sort((a, b) => (ratio(b) - ratio(a)) || (total(b) - total(a)));
+  return arr;
+}
+
+function renderRegionView(){
+  headerLeft.innerHTML = '';
+  headerCenter.innerHTML = '';
+  modalBody.innerHTML = '';
+  headerCenter.appendChild(el('h2', { class:'modal-title', attrs:{ id:'modalTitle' }, text:'各区域完成进度' }));
+  modal.setAttribute('aria-label', '各区域完成进度');
+
+  modalBody.appendChild(el('div', { class:'note', html:'进度条：<strong style="color:#43A047">绿色=已完成</strong> · <strong style="color:#E53935">红色=未完成</strong>；仅统计 9 月当月（与日历一致），口径：仅执行情况为「已完成」计入完成。' }));
+
+  const stats = computeRegionStats();
+  const view = el('div', { class:'region-view' });
+  if(stats.length === 0){
+    view.appendChild(el('div', { class:'item-sub', text:'暂无符合条件的项目数据' }));
+  }
+  stats.forEach(b => {
+    const card = el('div', { class:'region-card' });
+    const [rbg, rfg] = regionColor(b.region);
+    const t = b.early.total + b.late.total, dn = b.early.done + b.late.done;
+    const head = el('div', { class:'region-card-head' });
+    head.appendChild(el('span', { class:'region-name', text: b.region, attrs:{ style:`color:${rbg};` } }));
+    head.appendChild(el('span', { class:'region-sum', text:`合计 已完成 ${dn} / 总 ${t}` }));
+    card.appendChild(head);
+
+    [['早肺', b.early], ['晚肺', b.late]].forEach(([ln, lg]) => {
+      const line = el('div', { class:'region-line' });
+      const lh = el('div', { class:'region-line-head' });
+      lh.appendChild(el('span', { class:'line-name', text: ln, attrs:{ style:`color:${rbg};` } }));
+      lh.appendChild(el('span', { class:'line-count', html:`已完成 <b>${lg.done}</b> / 总 <b>${lg.total}</b>` }));
+      line.appendChild(lh);
+      const track = el('div', { class:'prog-track' + (lg.total === 0 ? ' empty' : '') });
+      const pct = lg.total ? Math.round(lg.done / lg.total * 100) : 0;
+      const fill = el('div', { class:'prog-fill' + (lg.done === 0 ? ' zero' : '') });
+      if(lg.total > 0) fill.setAttribute('style', `width:${pct}%;`);
+      track.appendChild(fill);
+      line.appendChild(track);
+      card.appendChild(line);
+    });
+    view.appendChild(card);
+  });
+  modalBody.appendChild(view);
+}
+
 /* ===== 交互 ===== */
 function openDay(d, trigger){
   state = { level:'list', listKind:'day', day:d, index:null };
@@ -406,6 +710,11 @@ function openDay(d, trigger){
 }
 function openList(kind, trigger){
   state = { level:'list', listKind:kind, day:null, index:null };
+  renderOverlay();
+  openOverlay(trigger);
+}
+function openRegion(trigger){
+  state = { view:'region' };
   renderOverlay();
   openOverlay(trigger);
 }
@@ -451,29 +760,22 @@ overlay.addEventListener('keydown', (e) => {
 });
 
 /* 底部入口 */
+document.getElementById('chip-region').addEventListener('click', (e) => openRegion(e.currentTarget));
 document.getElementById('chip-pending').addEventListener('click', (e) => openList('pending', e.currentTarget));
 document.getElementById('chip-mismatch').addEventListener('click', (e) => openList('mismatch', e.currentTarget));
 document.getElementById('dot-pending').textContent = String(DATA.pending.length);
 document.getElementById('dot-mismatch').textContent = String(DATA.mismatch.length);
 
-// 排期（有日期）按类型统计：中央市场 / 区域市场（= 中央配套）
-(function () {
-  let total = 0, market = 0, regional = 0;
-  for (const day in DATA.calendar) {
-    for (const it of DATA.calendar[day]) {
-      total++;
-      if (it.type === '中央市场') market++;
-      else if (it.type === '中央配套') regional++;
-    }
-  }
-  document.getElementById('subtitle').textContent =
-    `数据来源：中央配套 + 中央市场项目排期 · 9月共 ${total} 场活动安排（中央市场 ${market} 场 · 区域市场 ${regional} 场）`;
-})();
+// 副标题由 updateSubtitle() 根据筛选动态生成（TOTAL / MARKET / REGIONAL 已在筛选区块计算）
+
 // 无数据时隐藏对应入口
 if (DATA.pending.length === 0) document.getElementById('chip-pending').style.display = 'none';
 if (DATA.mismatch.length === 0) document.getElementById('chip-mismatch').style.display = 'none';
 
 /* 初始化 */
+buildFilters();
+syncFilterUI();
+updateSubtitle();
 renderGrid();
 </script>
 </body>

@@ -680,6 +680,18 @@ function regionColor(region){
 
 }
 
+/* 执行情况色：已完成=绿 / 正常开展=橙 / 进行中=蓝 / 待反馈=紫 / 已取消=灰 / 其他=中性灰 */
+const STATUS_COLOR_MAP = {
+  '已完成':   ['#E8F5E9','#2E7D32'],
+  '正常开展': ['#FFF3E0','#EF6C00'],
+  '进行中':   ['#E3F2FD','#1565C0'],
+  '待反馈':   ['#F3E5F5','#6A1B9A'],
+  '已取消':   ['#FAFAFA','#616161'],
+};
+function statusColor(s){
+  return STATUS_COLOR_MAP[s] || ['#ECEFF1','#37474F'];
+}
+
 
 
 /* ===== 筛选（区域 / 战役 / 肺肿线，多选） ===== */
@@ -1045,10 +1057,11 @@ function renderGrid(){
 
 /* ===== 数据获取 ===== */
 
-/* 未完成会议：执行情况 ≠ 「已完成」的所有 9 月会议（按日期正序） */
+/* 未完成会议：只取最后更新日之前的会议，且执行情况 ≠ 「已完成」（按日期正序） */
 function notDoneList(){
   const out = [];
   for(const d in DATA.calendar){
+    if(!isPastDay(parseInt(d, 10))) continue;
     for(const it of DATA.calendar[d]){
       if((it.status || '').trim() !== '已完成') out.push(it);
     }
@@ -1110,6 +1123,15 @@ function buildCard(item, idx){
   }));
 
   metaLeft.appendChild(el('span', { class:'item-owner', text:`负责人：${val(item.filler)}` }));
+
+  const _st = (item.status || '').trim();
+  if(_st){
+    const [sbg, sfg] = statusColor(_st);
+    metaLeft.appendChild(el('span', {
+      class:'item-status', text:`执行情况：${_st}`,
+      attrs:{ style:`background:${sbg};color:${sfg};` }
+    }));
+  }
 
   meta.appendChild(metaLeft);
 

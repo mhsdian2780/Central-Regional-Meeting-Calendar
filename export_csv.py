@@ -1,7 +1,54 @@
-import subprocess, json, sys
+# export_csv.py — 从两份腾讯文档导出最新 CSV（路径自适应，跨机器通用）
+# 用法: python export_csv.py
+# 设计：不再写死用户名路径；自动定位 WorkBuddy 的
+#      - 隔离 Python 运行时（.workbuddy/binaries/python/versions/*/python.exe）
+#      - 腾讯文档技能脚本（tencent-docs-plugin/*/skills/tencent-docs/tencentdocs.py）
+import subprocess, json, sys, os, glob, shutil
 
-PY_EXE = r'C:/Users/MyGo！！！！！/.workbuddy/binaries/python/versions/3.13.12/python.exe'
-DOC_PY = r'C:/Users/MyGo！！！！！/.workbuddy/plugins/cache/workbuddy-builtin/tencent-docs-plugin/1.0.0/skills/tencent-docs/tencentdocs.py'
+def _home():
+    return os.path.expanduser('~')
+
+def find_python():
+    # 1) 优先用 WorkBuddy 隔离运行时（与脚本开发环境一致）
+    vers = sorted(glob.glob(os.path.join(
+        _home(), '.workbuddy', 'binaries', 'python', 'versions', '*', 'python.exe')))
+    if vers:
+        return vers[-1]  # 取最高版本
+    # 2) 退化为运行本脚本的 python
+    if sys.executable:
+        return sys.executable
+    # 3) 最后退化为系统 python
+    for c in ('python3', 'python'):
+        if shutil.which(c):
+            return c
+    raise SystemExit('找不到可用的 Python 运行时')
+
+def find_tdoc_py():
+    base = os.path.join(_home(), '.workbuddy')
+    patterns = [
+        os.path.join(base, 'plugins', 'cache', 'workbuddy-builtin',
+                     'tencent-docs-plugin', '*', 'skills', 'tencent-docs', 'tencentdocs.py'),
+        os.path.join(base, 'plugins', 'workbuddy-builtin',
+                     'tencent-docs-plugin', '*', 'skills', 'tencent-docs', 'tencentdocs.py'),
+    ]
+    for pat in patterns:
+        hits = glob.glob(pat)
+        if hits:
+            return hits[0]
+    # 递归兜底（限制深度，避免扫全盘）
+    root0 = os.path.join(base, 'plugins')
+    for root, dirs, files in os.walk(root0):
+        if root[len(root0):].count(os.sep) > 6:
+            dirs[:] = []
+            continue
+        if 'tencentdocs.py' in files:
+            return os.path.join(root, 'tencentdocs.py')
+    raise SystemExit('找不到 tencent-docs 技能的 tencentdocs.py，请确认已连接腾讯文档连接器')
+
+PY_EXE = find_python()
+DOC_PY = find_tdoc_py()
+print(f'[auto-path] python = {PY_EXE}')
+print(f'[auto-path] tdoc   = {DOC_PY}')
 
 def call(file_id, sheet_id, end_row, end_col):
     args = json.dumps({
@@ -26,5 +73,6 @@ def export(file_id, sheet_id, end_row, end_col, out):
     print(f"wrote {out}: {csv_data.count(chr(10))} lines, {len(csv_data)} chars")
 
 if __name__ == "__main__":
+    # 文档 ID / 工作表 ID 与机器无关，保持写死
     export("DSVBJdHNDQm1OaU1D", "sf85uj", 583, 28, "_proj.csv")
     export("DYUtWUU5UQ2NqYmNU", "000001", 254, 29, "_meet.csv")

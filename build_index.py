@@ -26,13 +26,21 @@ def main():
         raise SystemExit("ERROR: template.html 中未找到 /*__DATA__*/ 占位符")
 
     out = tpl.replace("/*__DATA__*/", data_str)
+    # 注入最终更新日期（取 data.updatedAt，回退到本地日期）
+    updated_at = data.get("updatedAt")
+    if not updated_at:
+        from datetime import datetime
+        updated_at = '{y}/{m}/{d}'.format(y=datetime.now().year, m=datetime.now().month, d=datetime.now().day)
+    if "__UPDATED_AT__" not in out:
+        raise SystemExit("ERROR: template.html 中未找到 __UPDATED_AT__ 占位符")
+    out = out.replace("__UPDATED_AT__", updated_at)
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(out)
 
     size = os.path.getsize(out_path)
     total = data.get("total")
     days = len(data.get("calendar", {}))
-    print(f"OK 生成 index.html ({size} bytes) | total={total} 活动天数={days}")
+    print(f"OK 生成 index.html ({size} bytes) | total={total} 活动天数={days} updatedAt={updated_at}")
 
 
 if __name__ == "__main__":

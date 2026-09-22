@@ -1,12 +1,15 @@
 # refresh_data.py — 从两份腾讯文档 CSV 重新生成 data.json
 # 用法: python refresh_data.py <项目明细表.csv> <会议明细.csv> [输出data.json]
 #      [--proj-header N] [--meet-header N]   指定真实表头所在行(0-based)
+#      [--updated-at YYYY/M/D]               一次性覆盖「最后更新日」（默认取本地当天）
 # 设计：列名按关键词匹配，容错表头微调；只保留 9 月；中央市场 region 强制=中央。
 # 项目明细表仅统计「中央配套」类型，区域自办全部剔除；活动收集表仅取 9 月中央活动。
+# 注意：UPDATED_AT 不只是文案，页面用它判定 isPastDay（day < 更新日）——决定日期格是否标
+#       「历史」以及「未完成会议」的取样范围。覆盖它会改变这两处渲染结果。
 import sys, re, json, csv, os, argparse
 from datetime import datetime, timedelta
 
-# 最终更新日（取本地当前日期，格式 YYYY/M/D，如 2026/9/7）
+# 最终更新日（默认取本地当前日期，格式 YYYY/M/D，如 2026/9/7；可用 --updated-at 覆盖）
 UPDATED_AT = '{y}/{m}/{d}'.format(y=datetime.now().year, m=datetime.now().month, d=datetime.now().day)
 
 def find_col(header, *keys):
@@ -122,6 +125,16 @@ def build(proj_csv, meeting_csv, proj_header=0, meet_header=0):
         if not rows: return
         header = rows[header_row]
         c_month  = find_col(header, '月份')
+        # 月份列容错：表头被清空（2026-09-22 活动收集表出现）时，按列位回退到「活动时间」右侧一列
+        month_idx = None
+        if c_month in header:
+            month_idx = header.index(c_month)
+        else:
+            _t = find_col(header, '活动时间')
+            if _t in header:
+                _i = header.index(_t) + 1
+                if _i < len(header):
+                    month_idx = _i
         c_time   = find_col(header, '活动时间')
         c_filler = find_col(header, '填写人')
         c_line   = find_col(header, '肺肿线', '肺种线')
@@ -142,7 +155,7 @@ def build(proj_csv, meeting_csv, proj_header=0, meet_header=0):
                 src = g(c_type) if c_type else ''
                 if not type_keep(src):
                     continue
-            month = month_of(g(c_month)) if c_month else None
+            month = month_of(norm(r[month_idx]) if (month_idx is not None and month_idx < len(r)) else '')
             time = g(c_time)
             tmonth = month_of(time)
             target = month if month else tmonth
@@ -203,9 +216,18 @@ if __name__ == '__main__':
     ap.add_argument('out', nargs='?', default=os.path.join(os.path.dirname(__file__), 'data.json'))
     ap.add_argument('--proj-header', type=int, default=0)
     ap.add_argument('--meet-header', type=int, default=0)
+    ap.add_argument('--updated-at', default=None,
+                    help='一次性覆盖「最后更新日」，格式 YYYY/M/D（默认取本地当天）')
     a = ap.parse_args()
+    if a.updated_at:
+        if not re.match(r'^\s*\d{4}/\d{1,2}/\d{1,2}\s*$', a.updated_at):
+            raise SystemExit('ERROR: --updated-at 需为 YYYY/M/D 格式，如 2026/9/20')
+        globals()['UPDATED_AT'] = a.updated_at.strip()
+        print('注意: 已覆盖最终更新日为 %s（页面 isPastDay 与「未完成会议」口径随之变化）'
+              % globals()['UPDATED_AT'])
     data = build(a.proj, a.meet, a.proj_header, a.meet_header)
     with open(a.out, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False)
-    print('OK total=%d days=%d pending=%d mismatch=%d -> %s' % (
-        data['total'], len(data['calendar']), len(data['pending']), len(data['mismatch']), a.out))
+    print('OK total=%d days=%d pending=%d mismatch=%d updatedAt=%s -> %s' % (
+        data['total'], len(data['calendar']), len(data['pending']), len(data['mismatch']),
+        data['updatedAt'], a.out))
